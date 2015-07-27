@@ -26,7 +26,7 @@ sub irs {
 sub _caller {
   my ($self) = @_;
   my $c = $self->{caller};
-  return "$c[1]:$c[2]";
+  return "$$c[1]:$$c[2]";
 }
 
 sub _start {
@@ -40,7 +40,7 @@ sub _start {
 sub fail {
   my ($self, $msg) = @_;
   my @cmd = @{ $self->{cmd} };
-  die "$msg in @cmd";
+  die "$msg in '@cmd'\n";
 }
 
 sub DESTROY {
@@ -58,8 +58,14 @@ sub finish {
   $self->{fh} = undef;
   $self->fail("double finish") unless defined $fh;
   if (!close $fh) {
-    my $err = $? == -1 ? $! : $?;
-    $self->fail("command failed $err");
+    if ($? == -1) {
+      $self->fail("command failed $!");
+    } else {
+      my $exit = $? >> 8;
+      my $sig = $? & 127;
+      $self->fail("command killed by SIG$sig") if $sig;
+      $self->fail("command returned $exit");
+    }
   }
   return $self;
 }
@@ -67,6 +73,8 @@ sub finish {
 sub nxt {
   my ($self) = @_;
   croak "wantarray!" unless wantarray;
+  my $fh = $self->{fh};
+  $self->fail("not running") unless $fh;
   local $/ = $self->irs;
   my $ln = <$fh>;
   if (defined $ln) {
