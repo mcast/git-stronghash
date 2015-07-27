@@ -24,6 +24,7 @@ sub nxt {
   my $re = $self->{regex};
   if ($n) {
     my $m = my @m = $in =~ $re;
+    my $errmsg = $self->{errmsg};
     die "$errmsg: q{$in} !~ $re" unless $m;
     return \@m;
   } else {

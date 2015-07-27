@@ -22,8 +22,8 @@ sub add_commits {
   my @maybe_dele = grep { !defined $cis->{$_} } keys %$cis;
   push @maybe_dele, values %{ $self->{tags} ||= {} };
   # git log --all brings all current refs, but may have been given deleted tags+commitids
-  foreach my $ln ($self->pipefrom(qw( git log --format=%H,%T --all ), @maybe_dele)) {
-    my ($c, $t) = $ln =~ m{^(\w+),(\w+)$}
+  foreach my $ln ($self->pipefrom(qw( git log --format=%H:%T --all ), @maybe_dele)) {
+    my ($c, $t) = $ln =~ m{^(\w+):(\w+)$}
       or die "Can't read ciid,treeid = $ln";
     $cis->{$c} = $t unless defined $cis->{$c};
     $trees->{$t} = undef unless exists $trees->{$t};
