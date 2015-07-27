@@ -5,3 +5,5 @@
 # perl
 blib
 Makefile
+pm_to_blib
+cover_db
