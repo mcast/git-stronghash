@@ -2,6 +2,7 @@
 use strict;
 use warnings FATAL => 'all';
 
+use File::Slurp 'slurp';
 use Test::More;
 use Cwd 'abs_path';
 
@@ -9,14 +10,8 @@ use Cwd 'abs_path';
 sub main {
   plan tests => 3;
 
-  my @modfn = split /\n/, <<MODS; # (cd lib; find -name '*.pm' -type f)
-App/Git/StrongHash/Hashing.pm
-App/Git/StrongHash/Iterator.pm
-App/Git/StrongHash/Objects.pm
-App/Git/StrongHash/Piperator.pm
-App/Git/StrongHash/Regexperator.pm
-App/Git/StrongHash.pm
-MODS
+  my @modfn = split /\n/, slurp("$0.txt");
+  @modfn = grep { ! /^#/ } @modfn;
 
   my @mod = map { my $m = $_; $m =~ s{\.pm$}{}; $m =~ s{/}{::}g; $m } @modfn;
 

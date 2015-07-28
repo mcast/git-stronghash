@@ -1,0 +1,7 @@
+# (cd lib; find -name '*.pm' -type f)
+App/Git/StrongHash/Hashing.pm
+App/Git/StrongHash/Iterator.pm
+App/Git/StrongHash/Objects.pm
+App/Git/StrongHash/Piperator.pm
+App/Git/StrongHash/Regexperator.pm
+App/Git/StrongHash.pm
