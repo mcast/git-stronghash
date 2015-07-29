@@ -2,13 +2,13 @@
 use strict;
 use warnings FATAL => 'all';
 
-use File::Slurp 'slurp';
+use File::Slurp qw( slurp read_dir );
 use Test::More;
 use Cwd 'abs_path';
 
 
 sub main {
-  plan tests => 3;
+  plan tests => 4;
 
   my @modfn = split /\n/, slurp("$0.txt");
   @modfn = grep { ! /^#/ } @modfn;
@@ -49,7 +49,18 @@ sub main {
   is_deeply([ sort keys %seenmod ], [ sort @mod ],
 	    "our modules seen vs. required")
     or note explain { seen => \%seenmod };
-  
+
+  my @t = grep { /\.t$/ && -f $_ }
+    map {"$base/t/$_"} read_dir("$base/t");
+  my @use = map { /^\s*use\s+(App::Git::StrongHash\b.*?)(?: |;)/ ? ($1) : () }
+    map { slurp($_) } @t;
+  my %uq;
+  @uq{@use} = ();
+  @use = sort keys %uq;
+  my @mod_s = sort @mod;
+  is_deeply(\@use, \@mod_s, "test use'd vs. mods named")
+    or diag explain { listed_for_00 => \@mod_s, tested => \@use, in_testfiles => \@t };
+
   return 0;
 }
 
