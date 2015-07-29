@@ -3,30 +3,11 @@ use strict;
 use warnings FATAL => 'all';
 
 use Test::More;
-use Try::Tiny;
 
-use App::Git::StrongHash::Piperator;
 use App::Git::StrongHash::Regexperator;
 
-sub tryerr(&) {
-  my ($code) = @_;
-  return try { $code->() } catch {"ERR:$_"};
-}
-
-sub ione {
-  my ($iter) = @_;
-  my @i = $iter->nxt;
-  fail("expected one, got none") unless @i;
-  return $i[0]; # (conflates undef and eof)
-}
-
-sub plusNL { [ map {"$_\n"} @_ ] }
-
-sub mkiter {
-  my (@ele) = @_;
-  # a simple list iterator would be fine as input, but there isn't one yet
-  return App::Git::StrongHash::Piperator->new($^X, -e => 'foreach my $e (@ARGV) { print "$e\n" }', @ele);
-}
+use lib 't/lib';
+use Local::TestUtil qw( mkiter tryerr plusNL ione );
 
 
 sub main {
@@ -73,6 +54,9 @@ sub main {
   is_deeply([ $AGSR->new(mkiter(qw( 1 2 3 )), qr{^([a-z])?})->collect ],
 	    [ (undef) x 3 ], # from the non-matching first capture
 	    'weird case for branch coverage');
+
+  return 0;
 }
 
-main();
+
+exit main();

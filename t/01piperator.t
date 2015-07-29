@@ -3,29 +3,12 @@ use strict;
 use warnings FATAL => 'all';
 
 use Test::More;
-use Try::Tiny;
 
 use App::Git::StrongHash::Piperator;
 
-sub tryerr(&) {
-  my ($code) = @_;
-  return try { $code->() } catch {"ERR:$_"};
-}
+use lib 't/lib';
+use Local::TestUtil qw( tryerr ione plusNL detaint );
 
-sub ione {
-  my ($iter) = @_;
-  my @i = $iter->nxt;
-  fail("expected one, got none") unless @i;
-  return $i[0]; # (conflates undef and eof)
-}
-
-sub plusNL { [ map {"$_\n"} @_ ] }
-
-sub detaint {
-  my ($in) = @_;
-  $in =~ m{^(.*)\z}s or die "untaint fail: $in";
-  return $1;
-}
 
 sub main {
   plan tests => 15;
@@ -94,6 +77,9 @@ sub main {
 	 qr{^ERR:command close failed: Bad file descriptor in 'true'$},
 	 "close failure (due to preclose)");
   }
+
+  return 0;
 }
 
-main();
+
+exit main();
