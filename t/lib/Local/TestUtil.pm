@@ -7,7 +7,7 @@ use App::Git::StrongHash::Piperator;
 use Try::Tiny;
 use base 'Exporter';
 
-our @EXPORT_OK = qw( ione plusNL tryerr mkiter detaint );
+our @EXPORT_OK = qw( ione plusNL tryerr mkiter detaint t_nxt_wantarray );
 
 
 sub tryerr(&) {
@@ -34,6 +34,13 @@ sub detaint {
   my ($in) = @_;
   $in =~ m{^(.*)\z}s or die "untaint fail: $in";
   return $1;
+}
+
+sub t_nxt_wantarray {
+  my ($iter) = @_;
+  my $L = __LINE__; my $sc_nxt = tryerr { scalar $iter->nxt };
+  my $file = __FILE__;
+  main::like($sc_nxt, qr{^ERR:wantarray! at \Q$file\E line $L\.$}, 'wantarray || croak');
 }
 
 

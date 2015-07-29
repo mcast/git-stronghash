@@ -7,7 +7,7 @@ use Test::More;
 use App::Git::StrongHash::Regexperator;
 
 use lib 't/lib';
-use Local::TestUtil qw( mkiter tryerr plusNL ione );
+use Local::TestUtil qw( mkiter tryerr plusNL ione t_nxt_wantarray );
 
 
 sub main {
@@ -23,8 +23,7 @@ sub main {
 
   { # 2
     my $seq = $AGSR->new( mkiter(qw( foo bar baz )), qr{[aeiou]}, "no vowel");
-    my $L = __LINE__; my $sc_nxt = tryerr { scalar  $seq->nxt };
-    like($sc_nxt, qr{^ERR:wantarray! at t/02regexperator.t line $L\.$}, 'wantarray || croak');
+    t_nxt_wantarray($seq);
     is_deeply([ $seq->collect ], plusNL(qw(foo bar baz)), "match nocapture");
   }
 

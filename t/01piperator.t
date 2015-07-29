@@ -7,7 +7,7 @@ use Test::More;
 use App::Git::StrongHash::Piperator;
 
 use lib 't/lib';
-use Local::TestUtil qw( tryerr ione plusNL detaint );
+use Local::TestUtil qw( tryerr ione plusNL detaint t_nxt_wantarray );
 
 
 sub main {
@@ -23,8 +23,7 @@ sub main {
     my @seq = $seq->collect(\$n);
     is($n, 15, "5..15 len");
     is_deeply(\@seq, plusNL(5 .. 15), "5..15 ele");
-    my $L = __LINE__; my $sc_nxt = tryerr { scalar  $seq->nxt };
-    like($sc_nxt, qr{^ERR:wantarray! at t/01piperator.t line $L\.$}, 'wantarray || croak');
+    t_nxt_wantarray($seq);
     like(tryerr { my @n = $seq->nxt },
 	 qr{^ERR:not running in 'seq},
 	 "5..15 olivertwist");
