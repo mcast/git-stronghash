@@ -2,6 +2,9 @@ package App::Git::StrongHash::Iterator;
 use strict;
 use warnings;
 
+use App::Git::StrongHash::Regexperator;
+use App::Git::StrongHash::Penderator;
+
 
 =head1 NAME
 
@@ -41,8 +44,8 @@ sub collect {
 
 =head2 append(@iter)
 
-Create an L<App::Git::StrongHash::Penderator> instance from this
-iterator and the others specified, either putting this one last
+Create and return an L<App::Git::StrongHash::Penderator> instance from
+this iterator and the others specified, either putting this one last
 (prepend) or first (append).
 
 =cut
@@ -55,6 +58,19 @@ sub prepend {
 sub append {
   my ($self, @iter) = @_;
   return App::Git::StrongHash::Penderator->new($self, @iter);
+}
+
+
+=head2 iregex($regex, $errmsg)
+
+Create and return an L<App::Git::StrongHash::Regexperator>.
+C<$errmsg> is optional.
+
+=cut
+
+sub iregex {
+  my ($self, @arg) = @_;
+  return App::Git::StrongHash::Regexperator->new($self, @arg);
 }
 
 

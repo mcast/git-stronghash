@@ -50,7 +50,7 @@ sub main {
     is_deeply([ $seq->nxt ], [], 'end');
   }
 
-  is_deeply([ $AGSR->new(mkiter(qw( 1 2 3 )), qr{^([a-z])?})->collect ],
+  is_deeply([ mkiter(qw( 1 2 3 ))->iregex(qr{^([a-z])?})->collect ],
 	    [ (undef) x 3 ], # from the non-matching first capture
 	    'weird case for branch coverage');
 
