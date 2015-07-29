@@ -10,5 +10,5 @@ WriteMakefile
    {
     'Try::Tiny' => 0,
    },
-   ABSTRACT     => 'App::Git::StrongHash provides git-stronghash which provides secure hashing of repository contents',
+   ABSTRACT     => 'App::Git::StrongHash provides git-stronghash which adds secure hashing to repository contents',
    AUTHOR     => 'Matthew Astley <mcast@cpan.org>');
