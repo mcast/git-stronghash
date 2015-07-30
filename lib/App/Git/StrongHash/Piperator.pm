@@ -38,6 +38,9 @@ sub new {
   return $self->_start;
 }
 
+# XXX: new_later : defer via a Laterator
+# XXX: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
+
 =head2 irs
 
 Get/set accessor for the C<local $/> assignment used during reading.

@@ -1,0 +1,8 @@
+---
+add_tags: !!perl/hash:App::Git::StrongHash::Objects
+  dir: test-data
+  tags:
+    refs/tags/fif: 4ef2c9401ce4066a75dbe3e83eea2eace5920c37
+    # fif: ciid
+    refs/tags/goldfish: d9101db5d2c6d87f92605709f2e923cd269affec
+    # goldfish: tagobj id
