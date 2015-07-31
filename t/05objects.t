@@ -30,10 +30,15 @@ sub main {
     plan skip_all => "test-data/ not expanded from bundle?";
   }
 
-  plan tests => 3;
+  plan tests => 4;
 
   my $repo;
   my $RST = sub { $repo = App::Git::StrongHash::Objects->new($testrepo) };
+
+  $RST->();
+  is((join '  ', $repo->_git),
+     "git  --work-tree  test-data  --git-dir  test-data/.git",
+     "git commandline prefix");
 
   $RST->();
   $repo->add_tags;

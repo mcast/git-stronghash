@@ -105,7 +105,7 @@ sub _git {
   my ($self, @arg) = @_;
   my $dir = $self->{dir};
   my @cmd = ("git", "--work-tree", $dir, "--git-dir", "$dir/.git");
-  my $nulz = ($arg[0] eq '-z:') ? shift @arg : 0;
+  my $nulz = (@arg && $arg[0] eq '-z:') ? shift @arg : 0;
   if (@arg) {
     my $iter = App::Git::StrongHash::Piperator->new(@cmd, @arg);
     $iter->irs("\x00") if $nulz;
