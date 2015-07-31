@@ -4,6 +4,95 @@ use warnings;
 
 use App::Git::StrongHash::Piperator;
 
+=head1 NAME
+
+App::Git::StrongHash::Objects - enumerate relevant Git objects
+
+=head1 DESCRIPTION
+
+The basic plan is to enumerate all repository objects, hash them up
+and get them signed with something.
+
+=head2 For efficient storage of signatures
+
+=over 4
+
+=item * objects should be hashed and signed just once
+
+Store (blobid, hashes) for each, in one file per signing run.  Hashes
+should be fixed length in one file, and the header will tell what they
+are.
+
+The blobid identifies the data Git intended to store - commitid,
+treehash or whatever.  The hashes collectively lock the actual
+contents at the time of hash to that blobid.
+
+There is no value in hashing and signing again, unless with different
+algoritms.
+
+=item * resulting data file is never changed
+
+Packfile deltify is very good, but why make work for it?
+
+=item * total number of such files impacts the treesize to list them
+
+...and each tree must be stored, so this should scale as a fraction of
+the total commit count, or be stored in a part/ial_num/bering_scheme
+of directories.
+
+=back
+
+=head2 For efficient incremental signing
+
+=over 4
+
+=item * Each later commit is likely to reuse many objects
+
+We should assume a need to examine all previous signatures to perform
+"hash just once".
+
+=item * Commits already signed do not need to be re-examined
+
+Each signature will list some (commitid, hashes) sets anyway.
+
+We can use those to subtract from the total commit list.  It would be
+useful to put them early in the signature file for faster reading.
+
+=back
+
+Unfortunately this may mean holding every commitid in memory for a
+while, and handling the old signatures of every object.
+
+For large repos, it may be worth stashing
+
+=over 4
+
+=item * a bloom filter of blobids
+
+To avoid the wasted time of chasing for new objects through every old
+signature file.
+
+=item * a list of still-in-use blobid which were found in older
+signatures
+
+(abbreviated-blobid, signature-number, file-offset) would do it for
+8+8+8=24 bytes apiece; or 6+4+2=12 with more time-wasting collisions
+and a limit of 64k objects/signature.  File offset can be a blobcount
+rather than bytecount.
+
+This would permit fast and safe verification of sign-once, because the
+signer isn't relying only on the cache be correct.
+
+=back
+
+
+=head1 CLASS METHODS
+
+=head2 new($git_dir)
+
+XXX: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
+
+=cut
 
 sub new {
   my ($class, $dir) = @_;
@@ -33,13 +122,25 @@ sub _git_many {
   return App::Git::StrongHash::Penderator->new(@iter);
 }
 
+
+=head1 OBJECT METHODS
+
+=head2 add_tags()
+
+List into this object the current tags and their designated commits.
+
+Return self.
+
+=cut
+
 sub add_tags {
   my ($self) = @_;
-  my $tags = $self->{tags} ||= {};
+  my $tags = $self->{tags} ||= {}; # refs/foo => tagid or commitid
   my $showtags = $self->_git(qw( show-ref --tags ))->
-    # 4ef2c9401ce4066a75dbe3e83eea2eace5920c37 refs/tags/fif
-    # d9101db5d2c6d87f92605709f2e923cd269affec refs/tags/goldfish
-    # 9385c9345d9426f1aba91302dc1f34348a4fec96 refs/tags/goldfish^{}
+    # Sample data - blobids are abbreviated here for legibility
+    # 4ef2c940 refs/tags/fif
+    # d9101db5 refs/tags/goldfish
+    # 9385c934 refs/tags/goldfish^{}
     iregex(qr{^(\w+)\s+(\S+)$}, "Can't read tagid,tagref");
   while (my ($nxt) = $showtags->nxt) {
     my ($tagid, $tagref) = @$nxt;
@@ -50,27 +151,37 @@ sub add_tags {
 
 sub add_commits {
   my ($self) = @_;
-  my $cis   = $self->{ci} ||= {};
-  my $trees = $self->{toptree} ||= {};
-  my @maybe_dele = grep { !defined $cis->{$_} } keys %$cis;
+  my $cit   = $self->{ci_tree} ||= {}; # commitid => treeid
+  my @maybe_dele = grep { !defined $cit->{$_} } keys %$cit;
   push @maybe_dele, values %{ $self->{tags} ||= {} };
   # git log --all brings all current refs, but may have been given deleted tags+commitids
-  foreach my $ln ($self->_git(qw( log --format=%H:%T --all ), @maybe_dele)) {
-    my ($c, $t) = $ln =~ m{^(\w+):(\w+)$}
-      or die "Can't read ciid,treeid = $ln";
-    $cis->{$c} = $t unless defined $cis->{$c};
-    $trees->{$t} = undef unless exists $trees->{$t};
+  my $ciinfo = $self->_git_many
+    ([qw[ log --format=%H%x09%T%x09%P%x09%x23%x20%cI%x20%d%x20%s ]], 20, '--all', @maybe_dele)->
+    # XXX:OPT not sure we need all this data now, but it's in the commitblob anyway
+    # Sample data - blobids are abbreviated here for legibility
+    # 34570e3b	8f0cc215	5d88f523 f81423b6 9385c934	# 2015-07-30T22:14:27+01:00  (HEAD, brA) Merge branch 'brB', tag 'goldfish' into brA
+    # 9385c934	89a7d23f	f40b4bd2	# 2015-07-26T17:21:57+01:00  (tag: goldfish) magoldfish
+    # f81423b6	ae5349e7	b1ef447c	# 2015-07-26T16:37:25+01:00  (origin/brB, brB) wacky shopping
+    # 5d88f523	18860e20	4ef2c940	# 2015-07-26T16:33:25+01:00  (origin/brA, origin/HEAD, smoosh) seq -w 1 100
+    # d537baf1	4b825dc6		# 2015-07-26T16:29:36+01:00  initial empty commit
+    iregex(qr{^(\w+)\t(\w+)\t+([0-9a-f ]*)\t# (.*)$}, "Can't read ciid,treeid,parents,info");
+  while (my ($nxt) = $ciinfo->nxt) {
+    my ($ci, $tree, $parentci, $time_refs_subject__for_debug) = @$nxt;
+    $cit->{$ci} = $tree unless defined $cit->{$ci};
   }
   return $self;
 }
 
 sub add_trees {
   my ($self) = @_;
-  my $trees = $self->{toptree} ||= {};
+  my @treeq = values %{ $self->{ci_tree} };
+  my $trees = $self->{tree} ||= {}; # treeid => ??
 
 #mcra@peeplet:~/gitwk-github/git-stronghash/test-data/d1$ git ls-tree -r -t -l --full-tree -z ae5349e79d17a | perl -pe 's/\x00/\\x00/g'
 #040000 tree 5c1e1d7e049f5201eff7c3ca43c405f38564b949       -    d2\x00100644 blob 03c56aa7f2f917ff2c24f88fd1bc52b0bab7aa17      12 d2/shopping.txt\x00100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391       0  mtgg\x00100644 blob f00c965d8307308469e537302baa73048488f162      21        ten\x00mcra@peeplet:~/gitwk-github/git-stronghash/test-data/d1$ 
 }
+
+# XXX: add_treecommit - submodules, subtrees etc. not yet supported
 
 
 1;

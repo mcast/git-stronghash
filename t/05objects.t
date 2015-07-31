@@ -15,7 +15,7 @@ sub cmpobj {
   my ($wantname, $got) = @_;
   ($GURU_CHECKED) = LoadFile("$0.yaml") unless $GURU_CHECKED;
   my $want = $GURU_CHECKED->{$wantname}
-    or die "Missing guru_checked entry '$wantname' in $0.yaml";
+    or warn "Missing guru_checked entry '$wantname' in $0.yaml";
   my $ok = is_deeply($got, $want, $wantname);
   diag Dump({ got => $got, want => $want, wantname => $wantname }) unless $ok;
   return $ok;
@@ -30,7 +30,7 @@ sub main {
     plan skip_all => "test-data/ not expanded from bundle?";
   }
 
-  plan tests => 1;
+  plan tests => 2;
 
   my $repo;
   my $RST = sub { $repo = App::Git::StrongHash::Objects->new($testrepo) };
@@ -38,6 +38,10 @@ sub main {
   $RST->();
   $repo->add_tags;
   cmpobj(add_tags => $repo);
+
+  $RST->();
+  $repo->add_commits;
+  cmpobj(add_commits => $repo);
 
   return 0;
 }
