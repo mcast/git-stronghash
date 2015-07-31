@@ -30,7 +30,7 @@ sub main {
     plan skip_all => "test-data/ not expanded from bundle?";
   }
 
-  plan tests => 2;
+  plan tests => 3;
 
   my $repo;
   my $RST = sub { $repo = App::Git::StrongHash::Objects->new($testrepo) };
@@ -42,6 +42,10 @@ sub main {
   $RST->();
   $repo->add_commits;
   cmpobj(add_commits => $repo);
+
+  $RST->();
+  $repo->add_commits->add_trees;
+  cmpobj(add_trees => $repo);
 
   return 0;
 }

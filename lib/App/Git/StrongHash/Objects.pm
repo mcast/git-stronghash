@@ -105,8 +105,11 @@ sub _git {
   my ($self, @arg) = @_;
   my $dir = $self->{dir};
   my @cmd = ("git", "--work-tree", $dir, "--git-dir", "$dir/.git");
+  my $nulz = ($arg[0] eq '-z:') ? shift @arg : 0;
   if (@arg) {
-    return App::Git::StrongHash::Piperator->new(@cmd, @arg);
+    my $iter = App::Git::StrongHash::Piperator->new(@cmd, @arg);
+    $iter->irs("\x00") if $nulz;
+    return $iter;
   } else {
     return @cmd;
   }
@@ -128,7 +131,6 @@ sub _git_many {
 =head2 add_tags()
 
 List into this object the current tags and their designated commits.
-
 Return self.
 
 =cut
@@ -149,6 +151,16 @@ sub add_tags {
   return $self;
 }
 
+=head2 add_commits()
+
+List into this object the current commits from C<--all> refs, and
+collect their treeids.  Returns self.
+
+There is not yet any optimisation for avoiding known commits.
+Extra information is requested and not stored, for easier debugging.
+
+=cut
+
 sub add_commits {
   my ($self) = @_;
   my $cit   = $self->{ci_tree} ||= {}; # commitid => treeid
@@ -163,6 +175,7 @@ sub add_commits {
     # 9385c934	89a7d23f	f40b4bd2	# 2015-07-26T17:21:57+01:00  (tag: goldfish) magoldfish
     # f81423b6	ae5349e7	b1ef447c	# 2015-07-26T16:37:25+01:00  (origin/brB, brB) wacky shopping
     # 5d88f523	18860e20	4ef2c940	# 2015-07-26T16:33:25+01:00  (origin/brA, origin/HEAD, smoosh) seq -w 1 100
+    #...
     # d537baf1	4b825dc6		# 2015-07-26T16:29:36+01:00  initial empty commit
     iregex(qr{^(\w+)\t(\w+)\t+([0-9a-f ]*)\t# (.*)$}, "Can't read ciid,treeid,parents,info");
   while (my ($nxt) = $ciinfo->nxt) {
@@ -172,16 +185,55 @@ sub add_commits {
   return $self;
 }
 
+
+=head2 add_trees()
+
+List into this object the contents of all known trees, recursing to
+collect subtrees and blobids.  Returns self.
+
+XXX:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
+
+=cut
+
 sub add_trees {
   my ($self) = @_;
-  my @treeq = values %{ $self->{ci_tree} };
-  my $trees = $self->{tree} ||= {}; # treeid => ??
+  my $trees = $self->{tree} ||= {}; # treeid => undef, a set of trees scanned
+  my $blobs = $self->{blob} ||= {}; # blobid => size, a set of blobids known
+  my @treeq =
+    grep { !exists $trees->{$_} }
+    values %{ $self->{ci_tree} };
 
-#mcra@peeplet:~/gitwk-github/git-stronghash/test-data/d1$ git ls-tree -r -t -l --full-tree -z ae5349e79d17a | perl -pe 's/\x00/\\x00/g'
-#040000 tree 5c1e1d7e049f5201eff7c3ca43c405f38564b949       -    d2\x00100644 blob 03c56aa7f2f917ff2c24f88fd1bc52b0bab7aa17      12 d2/shopping.txt\x00100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391       0  mtgg\x00100644 blob f00c965d8307308469e537302baa73048488f162      21        ten\x00mcra@peeplet:~/gitwk-github/git-stronghash/test-data/d1$ 
+  while (@treeq) {
+    my %scanned;
+    @scanned{ splice @treeq } = ();
+    my $ls_tree = $self->_git_many([qw[ -z: ls-tree -r -t -l --full-tree -z ]], 1, keys %scanned)->
+      # mcra@peeplet:~/gitwk-github/git-stronghash/test-data/d1$ git ls-tree -r -t -l --full-tree -z ae5349e7 | perl -pe 's/\x00/\n/g'
+      # 040000 tree 5c1e1d7e049f5201eff7c3ca43c405f38564b949       -	d2
+      # 100644 blob 03c56aa7f2f917ff2c24f88fd1bc52b0bab7aa17      12	d2/shopping.txt
+      # 100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391       0	mtgg
+      # 100644 blob f00c965d8307308469e537302baa73048488f162      21	ten
+      iregex(qr{^\s*([0-7]{6}) (tree|blob) ([0-9a-f]+)\s+(-|\d+)\t(.+)\x00},
+	     "Can't read lstree(mode,type,objid,size,name)");
+    while (my ($nxt) = $ls_tree->nxt) {
+      my ($mode, $type, $objid, $size, $name) = @$nxt;
+      # type: tree | blob, via regex
+      if ($type eq 'tree') {
+	next if exists $trees->{$objid};
+	next if exists $scanned{$objid};
+	push @treeq, $objid;
+      } elsif ($type eq 'blob') {
+	$blobs->{$objid} = $size;
+      } else {
+	die "ls-tree gave me unexpected $type"; # and the iregex let it through
+      }
+    }
+    @{$trees}{ keys %scanned } = ();
+  }
+  return $self;
 }
 
 # XXX: add_treecommit - submodules, subtrees etc. not yet supported
+# XXX: add_stash, add_reflog - evidence for anything else that happens to be kicking around
 
 
 1;
