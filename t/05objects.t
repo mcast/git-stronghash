@@ -12,12 +12,14 @@ use lib 't/lib';
 
 my $GURU_CHECKED;
 sub cmpobj {
-  my ($wantname, $got) = @_;
+  my ($wantname, $got, $morename) = @_;
+  $morename = defined $morename ? " ($morename)" : '';
   ($GURU_CHECKED) = LoadFile("$0.yaml") unless $GURU_CHECKED;
   my $want = $GURU_CHECKED->{$wantname}
     or warn "Missing guru_checked entry '$wantname' in $0.yaml";
-  my $ok = is_deeply($got, $want, $wantname);
-  diag Dump({ got => $got, want => $want, wantname => $wantname }) unless $ok;
+  my $ok = is_deeply($got, $want, $wantname.$morename);
+  diag Dump({ got => $got, want => $want, wantname => $wantname.$morename })
+    unless $ok;
   return $ok;
 }
 
@@ -49,8 +51,24 @@ sub main {
   cmpobj(add_commits => $repo);
 
   $RST->();
-  $repo->add_commits->add_trees;
-  cmpobj(add_trees => $repo);
+  subtest add_trees => sub {
+    plan tests => 6;
+    my %field =
+      (ci_tree => { b1ef447c50a6bb259e97b0e8153f1f5b58982531 => '25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb' },
+       tree => { '32823f581286f5dcff5ee3bce389e13eb7def3a8' => undef },
+      );
+    foreach my $f (qw( tag ci_tree tree blob )) {
+      $repo->{$f} = $field{$f} ||= {};
+    }
+    $repo->add_tags->add_commits->add_trees;
+    cmpobj(add_trees => $repo, "primed");
+    while (my ($k, $v) = each %field) {
+      cmp_ok(scalar keys %$v, '>', 0, "repo{$k} collection");
+    }
+    $RST->();
+    $repo->add_tags->add_commits->add_trees;
+    cmpobj(add_trees => $repo, "unprimed");
+  };
 
   return 0;
 }

@@ -220,15 +220,18 @@ sub add_trees {
       # type: tree | blob, via regex
       if ($type eq 'tree') {
 	next if exists $trees->{$objid};
-	next if exists $scanned{$objid};
+	next if exists $scanned{$objid}; # uncoverable branch true (too tricky to arrange, and only a shortcut)
 	push @treeq, $objid;
 
-      } elsif ($type eq 'blob') {
-	$blobs->{$objid} = $size;
+      } else {
+	if ($type eq 'blob') { # uncoverable branch false (last case, weird structure for 'impossible')
+
+	  $blobs->{$objid} = $size;
 	
-      } else { # uncoverable branch
-	die "ls-tree gave me unexpected $type"; # uncoverable statement
-	# and the iregex let it through
+	} else {
+	  die "ls-tree gave me unexpected $type"; # uncoverable statement
+	  # and the iregex let it through
+	}
       }
     }
     @{$trees}{ keys %scanned } = ();
