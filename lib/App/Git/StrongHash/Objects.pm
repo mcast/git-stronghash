@@ -115,6 +115,7 @@ sub _git {
   }
 }
 
+# XXX: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
 sub _git_many {
   my ($self, $subcmd, $n_up, @arg) = @_;
   my @iter;
@@ -137,12 +138,12 @@ Return self.
 
 sub add_tags {
   my ($self) = @_;
-  my $tags = $self->{tags} ||= {}; # refs/foo => tagid or commitid
+  my $tags = $self->{tag} ||= {}; # refs/foo => tagid or commitid
   my $showtags = $self->_git(qw( show-ref --tags ))->
     # Sample data - blobids are abbreviated here for legibility
     # 4ef2c940 refs/tags/fif
     # d9101db5 refs/tags/goldfish
-    # 9385c934 refs/tags/goldfish^{}
+    # 9385c934 refs/tags/goldfish^{}   # NOT, unless --dereference
     iregex(qr{^(\w+)\s+(\S+)$}, "Can't read tagid,tagref");
   while (my ($nxt) = $showtags->nxt) {
     my ($tagid, $tagref) = @$nxt;
@@ -165,7 +166,7 @@ sub add_commits {
   my ($self) = @_;
   my $cit   = $self->{ci_tree} ||= {}; # commitid => treeid
   my @maybe_dele = grep { !defined $cit->{$_} } keys %$cit;
-  push @maybe_dele, values %{ $self->{tags} ||= {} };
+  push @maybe_dele, values %{ $self->{tag} ||= {} };
   # git log --all brings all current refs, but may have been given deleted tags+commitids
   my $ciinfo = $self->_git_many
     ([qw[ log --format=%H%x09%T%x09%P%x09%x23%x20%cI%x20%d%x20%s ]], 20, '--all', @maybe_dele)->
@@ -221,10 +222,13 @@ sub add_trees {
 	next if exists $trees->{$objid};
 	next if exists $scanned{$objid};
 	push @treeq, $objid;
+
       } elsif ($type eq 'blob') {
 	$blobs->{$objid} = $size;
-      } else {
-	die "ls-tree gave me unexpected $type"; # and the iregex let it through
+	
+      } else { # uncoverable branch
+	die "ls-tree gave me unexpected $type"; # uncoverable statement
+	# and the iregex let it through
       }
     }
     @{$trees}{ keys %scanned } = ();
@@ -232,7 +236,7 @@ sub add_trees {
   return $self;
 }
 
-# XXX: add_treecommit - submodules, subtrees etc. not yet supported
+# XXX: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
 # XXX: add_stash, add_reflog - evidence for anything else that happens to be kicking around
 
 
