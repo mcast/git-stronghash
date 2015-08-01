@@ -3,6 +3,8 @@ use strict;
 use warnings;
 
 use App::Git::StrongHash::Piperator;
+use App::Git::StrongHash::Listerator;
+
 
 =head1 NAME
 
@@ -241,6 +243,73 @@ sub add_trees {
 
 # XXX: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
 # XXX: add_stash, add_reflog - evidence for anything else that happens to be kicking around
+# XXX:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
+
+
+=head2 iter_tag()
+
+=head2 iter_ci()
+
+=head2 iter_tree()
+
+=head2 iter_blob()
+
+Return L<App::Git::StrongHash::Listerator> containing sorted objectids
+of the requested type.
+
+=cut
+
+sub iter_tag {
+  my ($self) = @_;
+  my $tags = $self->{tag};
+  my $cit = $self->{ci_tree};
+  return $self->_mkiter([ grep { !exists $cit->{$_} } values %$tags ]);
+}
+
+sub iter_ci {
+  my ($self) = @_;
+  my $cit = $self->{ci_tree};
+  return $self->_mkiter([ keys %$cit ]);
+}
+
+sub iter_tree {
+  my ($self) = @_;
+  return $self->_mkiter([ keys %{ $self->{tree} } ]);
+}
+
+sub iter_blob {
+  my ($self) = @_;
+  return $self->_mkiter([ keys %{ $self->{blob} } ]);
+}
+
+sub _mkiter {
+  my ($self, $list) = @_;
+  @$list = sort @$list;
+  return App::Git::StrongHash::Listerator->new($list);
+}
+
+
+=head2 blobtotal()
+
+Return (total_byte_size, blob_count) in list context, or just
+total_byte_size in scalar context, of all known data blobids as
+returned by L</iter_blob>.
+
+Tells nothing of the size of tags, commits or trees; these are
+presumed to be "small".
+
+=cut
+
+sub blobtotal {
+  my ($self) = @_;
+  my $blobs = $self->{blob};
+  my ($num, $tot) = (0, 0);
+  while (my (undef, $size) = each %$blobs) {
+    $tot += $size;
+    $num ++;
+  }
+  return wantarray ? ($tot, $num) : $tot;
+}
 
 
 1;
