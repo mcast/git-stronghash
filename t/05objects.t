@@ -9,7 +9,7 @@ use Test::More;
 use App::Git::StrongHash::Objects;
 
 use lib 't/lib';
-#use Local::TestUtil qw( mkiter tryerr plusNL ione t_nxt_wantarray );
+use Local::TestUtil qw( testrepo_or_skip );
 
 my $GURU_CHECKED;
 sub cmpobj {
@@ -25,14 +25,7 @@ sub cmpobj {
 }
 
 sub main {
-  my $testrepo = $0;
-  $testrepo =~ s{t/05objects\.t$}{test-data}
-    or die "Can't make test-data/ on $testrepo";
-  unless (-d $testrepo && -f "$testrepo/.git/config") {
-    note " => # git clone $testrepo.bundle # will make it";
-    plan skip_all => "test-data/ not expanded from bundle?";
-  }
-
+  my $testrepo = testrepo_or_skip();
   plan tests => 4;
 
   my $repo;

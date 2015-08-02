@@ -11,9 +11,11 @@ use App::Git::StrongHash::ObjHasher;
 use App::Git::StrongHash::Objects;
 
 use lib 't/lib';
+use Local::TestUtil qw( testrepo_or_skip );
 #use Local::TestUtil qw( mkiter tryerr plusNL ione t_nxt_wantarray );
 
 sub main {
+  my $testrepo = testrepo_or_skip();
   my $OH = 'App::Git::StrongHash::ObjHasher';
   plan tests => 2;
 

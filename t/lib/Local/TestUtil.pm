@@ -7,7 +7,7 @@ use App::Git::StrongHash::Piperator;
 use Try::Tiny;
 use base 'Exporter';
 
-our @EXPORT_OK = qw( ione plusNL tryerr mkiter detaint t_nxt_wantarray );
+our @EXPORT_OK = qw( ione plusNL tryerr mkiter detaint t_nxt_wantarray testrepo_or_skip );
 
 
 sub tryerr(&) {
@@ -41,6 +41,17 @@ sub t_nxt_wantarray {
   my $L = __LINE__; my $sc_nxt = tryerr { scalar $iter->nxt };
   my $file = __FILE__;
   main::like($sc_nxt, qr{^ERR:wantarray! at \Q$file\E line $L\.$}, 'wantarray || croak');
+}
+
+sub testrepo_or_skip {
+  my $testrepo = $0;
+  $testrepo =~ s{t/\S+\.t$}{test-data}
+    or die "Can't make test-data/ on $testrepo";
+  unless (-d $testrepo && -f "$testrepo/.git/config") {
+    main::note " => # git clone $testrepo.bundle # will make it";
+    main::plan skip_all => "test-data/ not expanded from bundle?";
+  }
+  return $testrepo;
 }
 
 
