@@ -274,11 +274,11 @@ efficient processing.
 sub output_hex {
   my ($self) = @_;
   my @h16 = map { $_->clone->hexdigest } $self->_hashers;
-  my @hkey = (objid => $self->_hashnames);
+  my @hkey = ($self->_hashnames);
   my %out = (objid => $self->objid_hex);
   @out{@hkey} = @h16;
   return %out if wantarray;
-  my $txt = (join ' ', map { "$_:$out{$_}" } @hkey)."\n";
+  my $txt = (join ' ', map { "$_:$out{$_}" } (objid => @hkey))."\n";
   return $txt;
 }
 

@@ -1,0 +1,30 @@
+---
+test-data/ten: |
+  00000000  31 0a 32 0a 33 0a 34 0a  35 0a 36 0a 37 0a 38 0a  |1.2.3.4.5.6.7.8.|
+  00000010  39 0a 31 30 0a                                    |9.10.|
+  00000015
+01hundred_sums:
+  txt: "objid:0123456789abcdef0123456789abcdef01234567 SHA-1:3410fe8506a624986b71df5671c5e5fdedb250e9 SHA-256:f89abec316c5bb09babb3e426c8821a934ebbf689058caf458760159bd6d8b41 SHA-384:5ce3839fdb60f91b02baf3d095ae52e5889c56ff441fef4b0620b671edb0fa34f9a5cda36587c1686eea81115dc24db1 SHA-512:23be9da7a21dd87b23be84ba4a2192f69008cb5a0afa4d03f9b87f41ba03876194ce7fce4a66098258aa2ff85bf310263744a9cb9b91fbf405ba5829f4aa183d\n"
+  kvp:
+    SHA-1: 3410fe8506a624986b71df5671c5e5fdedb250e9
+    SHA-256: f89abec316c5bb09babb3e426c8821a934ebbf689058caf458760159bd6d8b41
+    SHA-384: 5ce3839fdb60f91b02baf3d095ae52e5889c56ff441fef4b0620b671edb0fa34f9a5cda36587c1686eea81115dc24db1
+    SHA-512: 23be9da7a21dd87b23be84ba4a2192f69008cb5a0afa4d03f9b87f41ba03876194ce7fce4a66098258aa2ff85bf310263744a9cb9b91fbf405ba5829f4aa183d
+    objid: 0123456789abcdef0123456789abcdef01234567
+  bin: |
+    00000000  01 23 45 67 89 ab cd ef 01 23 45 67 89 ab cd ef
+    aaaaaaaa  01 23 45 67
+    aaaaaaaa              34 10 fe 85 06 a6 24 98 6b 71 df 56
+    aaaaaaaa  71 c5 e5 fd ed b2 50 e9
+    aaaaaaaa                          f8 9a be c3 16 c5 bb 09
+    aaaaaaaa  ba bb 3e 42 6c 88 21 a9 34 eb bf 68 90 58 ca f4
+    aaaaaaaa  58 76 01 59 bd 6d 8b 41
+    aaaaaaaa                          5c e3 83 9f db 60 f9 1b
+    aaaaaaaa  02 ba f3 d0 95 ae 52 e5 88 9c 56 ff 44 1f ef 4b
+    aaaaaaaa  06 20 b6 71 ed b0 fa 34 f9 a5 cd a3 65 87 c1 68
+    aaaaaaaa  6e ea 81 11 5d c2 4d b1
+    aaaaaaaa                          23 be 9d a7 a2 1d d8 7b
+    aaaaaaaa  23 be 84 ba 4a 21 92 f6 90 08 cb 5a 0a fa 4d 03
+    aaaaaaaa  f9 b8 7f 41 ba 03 87 61 94 ce 7f ce 4a 66 09 82
+    aaaaaaaa  58 aa 2f f8 5b f3 10 26 37 44 a9 cb 9b 91 fb f4
+    aaaaaaaa  05 ba 58 29 f4 aa 18 3d
