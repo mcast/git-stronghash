@@ -33,7 +33,7 @@ sub hex2bin {
 
 sub bin2hex {
   my ($bin) = @_;
-  #  return "(devel code exists to generate hexdump)";
+  return "(devel code exists to generate hexdump)";
   write_file("$0.tmp~", $bin);
   my $hd = `hexdump -C $0.tmp~`;
   return $hd;
