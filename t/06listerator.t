@@ -4,6 +4,7 @@ use warnings FATAL => 'all';
 
 use Test::More;
 
+use App::Git::StrongHash::Iterator; # for the benefit of 00compile.t
 use App::Git::StrongHash::Listerator;
 
 use lib 't/lib';
