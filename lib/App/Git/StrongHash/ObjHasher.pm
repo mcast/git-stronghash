@@ -124,7 +124,7 @@ other file or progress state.
 sub clone {
   my ($self) = @_;
   my $new = { %$self };
-  delete $new->{qw{ hasher objid }};
+  delete @{$new}{qw{ hasher objid }};
   bless $new, ref($self);
   return $new;
 }
@@ -145,7 +145,7 @@ key-value pairs (in list context) constituting the header.
 sub header_bin {
   my ($self) = @_;
   my %kv = $self->header_txt;
-  return pack('Z12SA6SSS', @kv{qw{ magic filev progv rowlen nci nobj }});
+  return pack($kv{_pack}, @kv{ @{ $kv{_order} }});
 }
 
 sub header_txt {
@@ -153,10 +153,17 @@ sub header_txt {
   my %out =
     (magic => 'GitStrngHash',
      filev => 1,
-     progv => $self->{code},
+     hdrlen => undef, # later
      rowlen => $self->rowlen,
      nci => $self->{nci},
-     nobj => $self->{nobj});
+     nobj => $self->{nobj},
+     progv => $self->{code},
+     htype => (join ',', $self->_htype),
+     comment => 'n/c',
+     _order => [qw[ magic filev hdrlen rowlen nci nobj progv htype comment ]],
+     _pack => 'a12 n5 Z* Z* Z*');
+  $out{hdrlen} = 12 + 2*5 + length(join 0, @out{qw{ progv htype comment }}, '');
+
   if (!wantarray) {
     require YAML;
     YAML->import('Dump');
@@ -221,6 +228,11 @@ sub objid_hex {
 sub objid_bin {
   my ($self) = @_;
   return pack('H*', $self->objid_hex);
+}
+
+sub _htype {
+  my ($self) = @_;
+  return @{ $self->{htype} };
 }
 
 sub _hashers {
@@ -295,8 +307,12 @@ sub output_hex {
   # well they don't match htypes, so maybe should avoid?  or translate?
   sub _hashnames {
     my ($self) = @_;
-    my @halg = map { $_->algorithm } $self->_hashers;
-    return map { $alg2name{$_} or die "Unknown Digest::SHA($_)" } @halg;
+    return map {
+      my $cls = ref($_);
+      my $alg = $_->algorithm;
+      $alg2name{$alg}
+	or die "Unknown digest $cls($alg)";
+    } $self->_hashers;
   }
 }
   

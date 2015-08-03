@@ -25,3 +25,58 @@ test-data/ten: |
     000000a0  58 aa 2f f8 5b f3 10 26  37 44 a9 cb 9b 91 fb f4  |X./.[..&7D......|
     000000b0  05 ba 58 29 f4 aa 18 3d                           |..X)...=|
     000000b8
+  lost_txt: "objid:0123456789abcdef0123456789abcdef01234567 SHA-1:da39a3ee5e6b4b0d3255bfef95601890afd80709 SHA-256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 SHA-384:38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b SHA-512:cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e\n"
+ciid:
+  hex: "3410fe8506a624986b71df5671c5e5fdedb250e9"
+  bin: |
+    00000000  34 10 fe 85 06 a6 24 98 6b 71 df 56 71 c5 e5 fd
+    00000010  ed b2 50 e9
+headers:
+  text:
+    magic: GitStrngHash
+    filev: 1
+    hdrlen: 57
+    rowlen: 184
+    nci: 1
+    nobj: 1
+    progv: x.yy_replaced_in_test_code
+    htype: sha1,sha256,sha384,sha512
+    comment: n/c
+    _order:
+      - magic
+      - filev
+      - hdrlen
+      - rowlen
+      - nci
+      - nobj
+      - progv
+      - htype
+      - comment
+    _pack: a12 n5 Z* Z* Z*
+  bin: |
+    00000000  47 69 74 53 74 72 6e 67  48 61 73 68 00 01 00 39  |GitStrngHash...9|
+    00000010  00 b8 00 01 00 01 30 2e  30 31 00 73 68 61 31 2c  |......0.01.sha1,|
+    00000020  73 68 61 32 35 36 2c 73  68 61 33 38 34 2c 73 68  |sha256,sha384,sh|
+    00000030  61 35 31 32 00 6e 2f 63  00                       |a512.n/c.|
+    00000039
+  h2_text:
+    magic: GitStrngHash
+    filev: 1
+    hdrlen: 38
+    rowlen: 52
+    nci: 64
+    nobj: 1024
+    progv: x.yy_replaced_in_test_code
+    htype: sha256
+    comment: n/c
+    _order:
+      - magic
+      - filev
+      - hdrlen
+      - rowlen
+      - nci
+      - nobj
+      - progv
+      - htype
+      - comment
+    _pack: a12 n5 Z* Z* Z*
