@@ -150,8 +150,9 @@ sub header_bin {
 
 sub header_txt {
   my ($self) = @_;
-  my %out =
-    (magic => 'GitStrngHash',
+  my @hdr =
+    (_pack =>'a12 n5 Z* Z* Z*',
+     magic => 'GitStrngHash',
      filev => 1,
      hdrlen => undef, # later
      rowlen => $self->rowlen,
@@ -159,9 +160,14 @@ sub header_txt {
      nobj => $self->{nobj},
      progv => $self->{code},
      htype => (join ',', $self->_htype),
-     comment => 'n/c',
-     _order => [qw[ magic filev hdrlen rowlen nci nobj progv htype comment ]],
-     _pack => 'a12 n5 Z* Z* Z*');
+     comment => 'n/c', # XXX: add API for optional comment
+
+     # local timestamp - an obvious thing to include, but what value?
+     # strong timestamped signatures will follow anyway, it's just
+     # clutter
+    );
+  my %out = @hdr;
+  $out{_order} = [ grep { !/^_/ } map { $hdr[ $_ * 2 ] } (0 .. $#hdr/2) ];
   $out{hdrlen} = 12 + 2*5 + length(join 0, @out{qw{ progv htype comment }}, '');
 
   if (!wantarray) {
