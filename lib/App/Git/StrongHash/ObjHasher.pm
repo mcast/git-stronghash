@@ -170,6 +170,15 @@ sub header_txt {
   $out{_order} = [ grep { !/^_/ } map { $hdr[ $_ * 2 ] } (0 .. $#hdr/2) ];
   $out{hdrlen} = 12 + 2*5 + length(join 0, @out{qw{ progv htype comment }}, '');
 
+  foreach my $k (qw( filev hdrlen rowlen nci nobj )) {
+    my $v = $out{$k};
+    # uncoverable condition left
+    # uncoverable condition right
+    # uncoverable branch true
+    croak "Bad header field $k=>$v" unless $v =~ /^\d+$/ && $v >= 0;
+    croak "Overflowed uint16 on header field $k=>$v" unless $v < 0x10000;
+  }
+
   if (!wantarray) {
     require YAML;
     YAML->import('Dump');

@@ -9,7 +9,6 @@ use Test::More;
 
 use App::Git::StrongHash;
 use App::Git::StrongHash::ObjHasher;
-use App::Git::StrongHash::Objects;
 
 use lib 't/lib';
 use Local::TestUtil qw( testrepo_or_skip tryerr );
@@ -165,9 +164,18 @@ sub main {
     my %tst2 = (%OK, htype => [ 'sha256' ], nci => 64, nobj => 1024);
     my $H2 = $OH->new(%tst2);
     is_deeply({ $H2->header_txt }, $T->{h2_text}, "H2 text");
-  };
 
-#  my $repo = App::Git::StrongHash::Objects->new($testrepo);
+    my $L;
+    my $oflow = 9357;
+    my $H3 = $OH->new(%OK, htype => [ ('sha256') x $oflow ]);
+    like(tryerr { $L = __LINE__; $H3->header_bin },
+	 qr{^ERR:Overflowed uint16 on header field rowlen=>299444 at \Q$0 line },
+	 "H3 row: short overflow");
+    $H3 = $OH->new(%OK, htype => [ ('sha256') x ($oflow+1) ]);
+    like(tryerr { $L = __LINE__; $H3->header_bin },
+	 qr{^ERR:Overflowed uint16 on header field hdrlen=>65537 at \Q$0 line },
+	 "H3 hdr: short overflow");
+  };
 
   return 0;
 }
