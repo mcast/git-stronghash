@@ -109,7 +109,7 @@ sub main {
     is($H->output_hex, $row, "same with chunked add");
   };
 
-  $H->{hasher}->[0] = Local::MockDigest->new;
+  $H->{_hasher}->[0] = Local::MockDigest->new;
   like(tryerr { scalar $H->output_hex },
        qr{^ERR:Unknown digest Local::MockDigest\(bogus\) at \S*/ObjHasher\.pm line},
        "exercise bogodigest message");
@@ -126,8 +126,11 @@ sub main {
     $got = tryerr { local $tst{htype} = [ "spork", @HT, "wellies" ]; $OH->new(%tst) }; $L = __LINE__;
     like($got, qr{^ERR:rejected bad htypes \(spork wellies\) at \Q$0 line $L.\E}, "bad htype");
 
-    $got = tryerr { local $tst{nblob} = undef; $OH->new(%tst) }; $L = __LINE__;
-    like($got, qr{^ERR:Required field 'nblob' missing at \Q$0 line $L.\E}, "missing");
+    $got = tryerr { local $tst{nci} = undef; $OH->new(%tst) }; $L = __LINE__;
+    like($got, qr{^ERR:Required field 'nci' missing at \Q$0 line $L.\E}, "missing nci");
+
+    $got = tryerr { local $tst{nblob} = undef; $OH->new(%tst) };
+    isa_ok($got, $OH, "nblob optional");
 
     $got = tryerr { local $tst{nci} = "splee"; $OH->new(%tst) }; $L = __LINE__;
     like($got, qr{^ERR:Invalid nci=splee at \Q$0 line $L.\E}, "bad num");
@@ -221,6 +224,10 @@ sub main {
     like(tryerr { local $SIG{__WARN__} = sub {}; $OH->header_bin2txt(\*JUNK); my $no_warn = \*JUNK },
 	 qr{^ERR:Failed sysread'ing header magic: Bad file descriptor at \Q$0 line},
 	 "sysread JUNK GLOB");
+    is_deeply($OH->new(%out),
+	      $OH->new(%in, nblob => undef, blobbytes => undef),
+	      "header_bin2txt is new'able");
+    is($OH->new(%out)->header_bin, $hdr, "roundtrip match");
 
     # EOFs
     my $hdr_longwant = pack('a12 n3', @out{qw{ magic filev }}, 1024, 1234);

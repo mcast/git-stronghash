@@ -81,8 +81,11 @@ sub _init {
 
   foreach my $key (qw( nci nblob nobj blobbytes )) {
     my $tmp = $self->{$key} = delete $info{$key};
-    croak "Required field '$key' missing" unless defined $tmp;
-    croak "Invalid $key=$tmp" unless $tmp =~ /^\d+$/;
+    if (!defined $tmp) {
+      croak "Required field '$key' missing" unless $self->_optional($key);
+    } else {
+      croak "Invalid $key=$tmp" unless $tmp =~ /^\d+$/;
+    }
   }
 
   # Sanity check
@@ -92,18 +95,23 @@ sub _init {
   my @bad = grep { !exists $okhtype{$_} } @htype;
   croak "rejected bad htypes (@bad)" if @bad;
 
-  croak "nci + nblob > nobj" if $self->{nci} + $self->{nblob} > $self->{nobj};
+  croak "nci + nblob > nobj" if $self->{nci} + ($self->{nblob} || 0) > $self->{nobj};
   croak "File format requires nobj < 65536, please split" if $self->{nobj} >= 0x10000;
 
-  # Add non-configuration state
-  my @hasher = map { Digest::SHA->new($_) } @htype;
-  # update ->clone if adding state
-  $self->{hasher} = \@hasher;
-
   # just to roundtrip a header
-  delete @info{qw{ filev hdrlen rowlen progv comment }};
+  delete @info{qw{ magic filev hdrlen rowlen progv comment }};
 
   return %info;
+}
+
+{
+  my %OPTIONAL =
+    (nblob => 1, blobbytes => 1, # because they are just for progress
+    );
+  sub _optional {
+    my ($class, $fieldname) = @_;
+    return $OPTIONAL{$fieldname};
+  }
 }
 
 
@@ -193,7 +201,7 @@ other file or progress state.
 sub clone {
   my ($self) = @_;
   my $new = { %$self };
-  delete @{$new}{qw{ hasher objid }};
+  delete @{$new}{qw{ _hasher objid }};
   bless $new, ref($self);
   return $new;
 }
@@ -323,7 +331,8 @@ sub _htype {
 
 sub _hashers {
   my ($self) = @_;
-  return @{ $self->{hasher} };
+  $self->{_hasher} ||= [ map { Digest::SHA->new($_) } $self->_htype ];
+  return @{ $self->{_hasher} };
 }
 
 
