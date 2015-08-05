@@ -6,6 +6,7 @@ use List::Util qw( sum );
 use File::Slurp qw( slurp write_file );
 use YAML qw( LoadFile Dump Load );
 use Test::More;
+use File::Temp 'tempfile';
 
 use App::Git::StrongHash;
 use App::Git::StrongHash::ObjHasher;
@@ -38,13 +39,37 @@ sub bin2hex {
   return $hd;
 }
 
+sub fh_on {
+  my ($name, $blob) = @_;
+  # (open $fh, '<', \$data) are incompatible with sysread.
+  # IO::String was incompatible with (local $/ = \16).
+  # (open \$data) was giving me utf8 decoding issues.
+  #
+  # There may be a better way round all this, but the test should
+  # pass anyway.  Beware, we mix print+sysread here!
+  my ($fh, $filename) = tempfile("07objhasher.$name.XXXXXX", TMPDIR => 1);
+  $fh->autoflush(1);
+  print {$fh} $blob or die "print{$filename}: $!";
+  sysseek $fh, 0, 0 or die "sysseek($filename): $!";
+  return $fh;
+}
+
 sub main {
   my $testrepo = testrepo_or_skip();
   my $OH = 'App::Git::StrongHash::ObjHasher';
   my $JUNK_CIID = '0123456789abcdef0123456789abcdef01234567';
   my ($DATA) = LoadFile("$0.yaml");
 
-  plan tests => 12;
+  plan tests => 13;
+
+  foreach my $path (qw( to_header/text to_header/h2_text from_header/out )) {
+    my @p = split m{/}, $path;
+    my $h = $DATA->{$p[0]}{$p[1]};
+    die "Can't update path $path ($h->{progv})"
+      unless $h->{progv} eq 'x.yy_replaced_in_test_code';
+    $h->{progv} =
+      App::Git::StrongHash->VERSION;
+  }
 
   is(hex2bin($DATA->{'test-data/ten'}), slurp("$testrepo/ten"), "hex2bin util");
 
@@ -138,15 +163,12 @@ sub main {
       or diag bin2hex($H->objid_bin);
   };
 
-  subtest headers => sub {
+  subtest to_header => sub {
     my $H = $OH->new(%OK);
-    my $T = $DATA->{headers};
+    my $T = $DATA->{to_header};
     my $hdr = $H->header_bin;
     my %hdr = $H->header_txt;
     my $hdrtxt = $H->header_txt;
-    $T->{text}{progv} =
-      $T->{h2_text}{progv} =
-      App::Git::StrongHash->VERSION;
 
     is_deeply(\%hdr, $T->{text}, "text expected")
       or diag explain \%hdr;
@@ -169,12 +191,48 @@ sub main {
     my $oflow = 9357;
     my $H3 = $OH->new(%OK, htype => [ ('sha256') x $oflow ]);
     like(tryerr { $L = __LINE__; $H3->header_bin },
-	 qr{^ERR:Overflowed uint16 on header field rowlen=>299444 at \Q$0 line },
+	 qr{^ERR:Overflowed uint16 on header field rowlen=>299444 at \Q$0 line $L.},
 	 "H3 row: short overflow");
     $H3 = $OH->new(%OK, htype => [ ('sha256') x ($oflow+1) ]);
     like(tryerr { $L = __LINE__; $H3->header_bin },
-	 qr{^ERR:Overflowed uint16 on header field hdrlen=>65537 at \Q$0 line },
+	 qr{^ERR:Overflowed uint16 on header field hdrlen=>65537 at \Q$0 line $L.},
 	 "H3 hdr: short overflow");
+  };
+
+  subtest from_header => sub {
+    my $T = $DATA->{from_header};
+    my %in = %{ $T->{in} };
+    my $hdr = $OH->new(%in)->header_bin;
+    my %out = $OH->header_bin2txt($hdr);
+    note bin2hex($hdr);
+    is_deeply(\%out, $T->{out}, "recovered header (bin)");
+
+    my $fh = fh_on(valid => $hdr."WHATSNEXT\nETC\n");
+    %out = $OH->header_bin2txt($fh);
+    is_deeply(\%out, $T->{out}, "recovered header (fh)");
+    my $buf;
+    sysread($fh, $buf, 10) or die "sysread 10: $!";
+    is($buf, "WHATSNEXT\n", "fh ready at first row");
+
+    like(tryerr { local $SIG{__WARN__} = sub {}; $OH->header_bin2txt(\*JUNK); my $no_warn = \*JUNK },
+	 qr{^ERR:Failed sysread'ing header magic: Bad file descriptor at \Q$0 line},
+	 "sysread JUNK GLOB");
+
+    # EOFs
+    my $hdr_longwant = pack('a12 n3', @out{qw{ magic filev }}, 1024, 1234);
+    is_deeply([ $OH->header_bin2txt("HARDLY_A_BITE") ], [ 16 ], "demand magicful of binstring");
+    is_deeply([ $OH->header_bin2txt($hdr_longwant) ], [ 1024 ], "demand the whole binstring");
+    like(tryerr { $OH->header_bin2txt(fh_on(nomagic => "HARDLY_A_BITE")) },
+	 qr{^ERR:EOF before header magic \Q(got 13) at $0 line }, "EOF on header magic");
+    like(tryerr { $OH->header_bin2txt(fh_on(shorthead => $hdr_longwant)) },
+	 qr{^ERR:EOF before end of header \Q(got 2) at $0 line }, "EOF on header");
+
+    like(tryerr { $OH->header_bin2txt("THE_WRONG_BITES_ARE_USELESS") },
+	 qr{^ERR:Bad file magic.* at \Q$0 line}, "bad magic");
+    my $AB = 0x4142;
+    my $VSN = App::Git::StrongHash->VERSION;
+    like(tryerr { $OH->header_bin2txt("$out{magic}ABCD") },
+	 qr{^ERR:Bad file version $AB, only 1 known by code v$VSN at \Q$0 line}, "bad magic");
   };
 
   return 0;

@@ -68,6 +68,10 @@ sub new {
   return $self;
 }
 
+sub _minimal { # suitable for new
+  (htype => ['sha256'], nci => 0, nobj => 1, nblob => 1, blobbytes => 1);
+}
+
 sub _init {
   my ($self, %info) = @_;
 
@@ -96,6 +100,9 @@ sub _init {
   # update ->clone if adding state
   $self->{hasher} = \@hasher;
 
+  # just to roundtrip a header
+  delete @info{qw{ filev hdrlen rowlen progv comment }};
+
   return %info;
 }
 
@@ -109,6 +116,68 @@ strong or useful is delegated to the caller.
 
 sub htypes {
   return @HASHES;
+}
+
+
+=head2 header_bin2txt($fh)
+
+=head2 header_bin2txt($bin)
+
+Read the header in a filehandle or binary string and return the
+translated list of (key, value) pairs.  May generate errors.
+
+Filehandles will be read B<using C<sysread>> from current position
+(presumably start of file) and left ready to read the first hash row;
+or at an undefined position on error.
+
+If the binary string is not long enough, return just the required
+number of bytes (one element).  64k is definitely plenty.  This part
+of the interface looks ugly and might change.
+
+=cut
+
+sub header_bin2txt {
+  my ($class, $in) = @_;
+  my ($buf, $fh, $add) = ('', 0, 16);
+  if (ref($in)) {
+    $fh = $in;
+    my $nread = sysread($fh, $buf, $add);
+    croak "Failed sysread'ing header magic: $!" unless defined $nread;
+    croak "EOF before header magic (got $nread)" unless $nread >= $add;
+  } else {
+    $buf = $in;
+  }
+
+  return $add if length($buf) < $add; # more!
+  my ($magic, $filev, $hdrlen) = unpack('a12 n2', $buf);
+
+  croak "Bad file magic - is this a 'git stronghash' digests file?"
+    unless $magic eq HEADER_MAGIC();
+  my @OKVSN = (1);
+  croak "Bad file version $filev, only @OKVSN known by code v".App::Git::StrongHash->VERSION
+    unless grep { $_ == $filev } @OKVSN;
+
+  if ($hdrlen > length($buf)) {
+    if ($fh) {
+      $add = $hdrlen - length($buf);
+      my $nread = sysread($fh, $buf, $add, length($buf));
+      # uncoverable branch true
+      croak "Failed sysread'ing header: $!" unless defined $nread;
+      croak "EOF before end of header (got $nread)" unless length($buf) == $hdrlen;
+    } else {
+      return $hdrlen; # more!
+    }
+  }
+
+  my %sample = $class->new($class->_minimal)->header_txt;
+  my %out;
+  @out{ @{$sample{_order}} } = unpack($sample{_pack}, $buf);
+  $out{htype} = [ split ',', $out{htype} ];
+
+#  $out{_rawhdr} = $buf if $keep_hdr;
+#  main::diag main::bin2hex($buf);
+
+  return %out;
 }
 
 
@@ -148,11 +217,13 @@ sub header_bin {
   return pack($kv{_pack}, @kv{ @{ $kv{_order} }});
 }
 
+sub HEADER_MAGIC() { 'GitStrngHash' }
+
 sub header_txt {
   my ($self) = @_;
   my @hdr =
     (_pack =>'a12 n5 Z* Z* Z*',
-     magic => 'GitStrngHash',
+     magic => HEADER_MAGIC(),
      filev => 1,
      hdrlen => undef, # later
      rowlen => $self->rowlen,

@@ -31,7 +31,7 @@ ciid:
   bin: |
     00000000  34 10 fe 85 06 a6 24 98 6b 71 df 56 71 c5 e5 fd
     00000010  ed b2 50 e9
-headers:
+to_header:
   text:
     magic: GitStrngHash
     filev: 1
@@ -80,3 +80,24 @@ headers:
       - htype
       - comment
     _pack: a12 n5 Z* Z* Z*
+from_header:
+  in:
+    htype:
+      - sha256
+      - sha512
+    nci: 293
+    nobj: 3056
+    nblob: 2000
+    blobbytes: 20480
+  out:
+    magic: GitStrngHash
+    filev: 1
+    hdrlen: 45
+    rowlen: 116
+    nci: 293
+    nobj: 3056
+    progv: x.yy_replaced_in_test_code
+    htype:
+      - sha256
+      - sha512
+    comment: n/c
