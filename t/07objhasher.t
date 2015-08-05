@@ -144,7 +144,7 @@ sub main {
     my $old = $H->clone;
     $H->newfile(commit => length($txt), $JUNK_CIID);
     $H->add($txt);
-    $H->output_bin;
+    my $out1 = $H->output_bin;
     $H->newfile(commit => length("blah"), $JUNK_CIID);
     $H->add("blah");
     my $new = $H->clone;
@@ -152,6 +152,10 @@ sub main {
       or diag Dump({ old => $old, H => $H, new => $new });
     cmp_ok(scalar keys %$new, '<', scalar keys %$H, 'keys were deleted')
       or diag explain { new => [ sort keys %$new ], H => [ sort keys %$H ] };
+    $new->newfile(commit => length($txt), $JUNK_CIID);
+    $new->add($txt);
+    my $out_new = $new->output_bin;
+    is($out_new, $out1, "post-clone digests match");
   };
 
   subtest ciid => sub {
