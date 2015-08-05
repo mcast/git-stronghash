@@ -37,8 +37,8 @@ L</htypes>.
 =item nci
 
 Total number of commits to be hashed.  This is written to the header,
-and the objectid-sorted commit hashes are written next in the file, to
-support fast lookup of whether a commit is in a file.
+and the objectid-sorted commit hashes are written next in the
+digestfile, to support fast lookup of whether a commit is present.
 
 =item nblob
 
@@ -47,7 +47,7 @@ during hashing.
 
 =item nobj
 
-Total object count for the hashes file (including C<nci>).  This
+Total object count for the digestfile (including C<nci>).  This
 permits calculation of the total file size.
 
 =item blobbytes
@@ -96,7 +96,7 @@ sub _init {
   croak "rejected bad htypes (@bad)" if @bad;
 
   croak "nci + nblob > nobj" if $self->{nci} + ($self->{nblob} || 0) > $self->{nobj};
-  croak "File format requires nobj < 65536, please split" if $self->{nobj} >= 0x10000;
+  croak "Digestfile format requires nobj < 65536, please split" if $self->{nobj} >= 0x10000;
 
   # just to roundtrip a header
   delete @info{qw{ magic filev hdrlen rowlen progv comment }};
@@ -284,7 +284,7 @@ sub rowlen {
 
 =head2 newfile($type, $size, $objid)
 
-Reset the hashers for a new file, of given type, size and (full-length
+Reset hashers for a new object of given type, size and (full-length
 hex) Git objectid.  The contents are given to L</add>.
 
 =cut
@@ -307,7 +307,7 @@ sub newfile {
 
 =head2 objid_bin()
 
-Return Git objectid of current file, as given to L</newfile>, either
+Return Git objectid of current object, as given to L</newfile>, either
 as hex or binary.
 
 =cut
@@ -315,7 +315,7 @@ as hex or binary.
 sub objid_hex {
   my ($self) = @_;
   my $objid = $self->{objid};
-  croak "No current file" unless defined $objid;
+  croak "No current object" unless defined $objid;
   return $objid;
 }
 

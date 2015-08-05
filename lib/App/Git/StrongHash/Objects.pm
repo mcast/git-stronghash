@@ -21,9 +21,9 @@ and get them signed with something.
 
 =item * objects should be hashed and signed just once
 
-Store (blobid, hashes) for each, in one file per signing run.  Hashes
-should be fixed length in one file, and the header will tell what they
-are.
+Store (blobid, hashes) for each, in one digestfile per signing run.
+Hashes should be fixed length in one file, and the header will tell
+what they are.
 
 The blobid identifies the data Git intended to store - commitid,
 treehash or whatever.  The hashes collectively lock the actual
@@ -32,7 +32,7 @@ contents at the time of hash to that blobid.
 There is no value in hashing and signing again, unless with different
 algoritms.
 
-=item * resulting data file is never changed
+=item * resulting digestfile is never changed
 
 Packfile deltify is very good, but why make work for it?
 
@@ -58,7 +58,7 @@ We should assume a need to examine all previous signatures to perform
 Each signature will list some (commitid, hashes) sets anyway.
 
 We can use those to subtract from the total commit list.  It would be
-useful to put them early in the signature file for faster reading.
+useful to put them early in the digestfile for faster reading.
 
 =back
 
@@ -72,18 +72,18 @@ For large repos, it may be worth stashing
 =item * a bloom filter of blobids
 
 To avoid the wasted time of chasing for new objects through every old
-signature file.
+digestfile.
 
 =item * a list of still-in-use blobid which were found in older
 signatures
 
-(abbreviated-blobid, signature-number, file-offset) would do it for
+(abbreviated-blobid, digestfile-number, file-offset) would do it for
 8+8+8=24 bytes apiece; or 6+4+2=12 with more time-wasting collisions
 and a limit of 64k objects/signature.  File offset can be a blobcount
 rather than bytecount.
 
-This would permit fast and safe verification of sign-once, because the
-signer isn't relying only on the cache be correct.
+This enables fast and safe verification of sign-once.  The signer
+isn't relying only on the cache to be correct.
 
 =back
 

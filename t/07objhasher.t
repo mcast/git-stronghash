@@ -82,7 +82,7 @@ sub main {
 
   foreach my $method (qw( output_hex output_bin objid_hex objid_bin )) {
     my $L = __LINE__; my $got = tryerr { $H->$method };
-    like($got, qr{^ERR:No current file at \Q$0\E line $L\.}, "$method before newfile");
+    like($got, qr{^ERR:No current object at \Q$0\E line $L\.}, "$method before newfile");
   }
 
   my $txt = slurp("$testrepo/0hundred");
@@ -99,7 +99,7 @@ sub main {
     is($bin, hex2bin($want->{bin}), "01hundred_sums bin")
       or diag bin2hex($bin);
 
-    $H->{objid} = $JUNK_CIID; # to prevent croak 'No current file'
+    $H->{objid} = $JUNK_CIID; # to prevent croak 'No current object'
     # nb. hasher state otherwise unchanged
     my $lost_row = $H->output_hex;
     is($lost_row, $want->{lost_txt}, "hasher state is lost, output is digest(0 bytes)");
@@ -139,7 +139,7 @@ sub main {
     like($got, qr{^ERR:nci \+ nblob > nobj at \Q$0 line $L.\E}, "nobj small");
 
     $got = tryerr { local @tst{qw{ nci nobj }} = (1E5, 1E5); $OH->new(%tst) }; $L = __LINE__;
-    like($got, qr{^ERR:File format requires nobj < 65536, please split at \Q$0 line $L.\E}, "nci big");
+    like($got, qr{^ERR:Digestfile format requires nobj < 65536, please split at \Q$0 line $L.\E}, "nci big");
   };
 
   subtest clone => sub {
@@ -243,7 +243,7 @@ sub main {
     my $AB = 0x4142;
     my $VSN = App::Git::StrongHash->VERSION;
     like(tryerr { $OH->header_bin2txt("$out{magic}ABCD") },
-	 qr{^ERR:Bad file version $AB, only 1 known by code v$VSN at \Q$0 line}, "bad magic");
+	 qr{^ERR:Bad file version $AB, only 1 known by code v$VSN at \Q$0 line}, "bad filev");
   };
 
   return 0;
