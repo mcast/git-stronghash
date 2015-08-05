@@ -107,6 +107,7 @@ sub _init {
 {
   my %OPTIONAL =
     (nblob => 1, blobbytes => 1, # because they are just for progress
+     # (or have setters for progress-related fields?)
     );
   sub _optional {
     my ($class, $fieldname) = @_;
@@ -145,7 +146,9 @@ of the interface looks ugly and might change.
 =cut
 
 sub header_bin2txt {
-  my ($class, $in) = @_;
+  my ($called, $in) = @_;
+  my $class = ref($called) || $called;
+
   my ($buf, $fh, $add) = ('', 0, 16);
   if (ref($in)) {
     $fh = $in;
@@ -410,6 +413,6 @@ sub output_hex {
     } $self->_hashers;
   }
 }
-  
+
 
 1;

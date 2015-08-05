@@ -4,6 +4,9 @@ use warnings;
 
 use App::Git::StrongHash::Piperator;
 use App::Git::StrongHash::Listerator;
+use App::Git::StrongHash::ObjHasher;
+
+use Carp;
 
 
 =head1 NAME
@@ -245,47 +248,102 @@ sub add_trees {
 # XXX: add_stash, add_reflog - evidence for anything else that happens to be kicking around
 # XXX:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
 
+=head2 mkhasher(%info)
 
-=head2 iter_tag()
+Calls L<App::Git::StrongHash::ObjHasher/new> and returns the new
+object.  Values for C<nci, nblob, blobbytes, nobj> are provided and
+will replace those in C<%info>.
 
-=head2 iter_ci()
+=cut
 
-=head2 iter_tree()
+sub mkhasher {
+  my ($self, %info) = @_;
+  $info{nci} = scalar keys %{ $self->{ci_tree} };
+  my $ntree  = scalar keys %{ $self->{tree} };
+  my $ntag = $self->iter_tag->dcount; # XXX:OPT more code, less memory?
+  @info{qw{ blobbytes nblob }} = $self->blobtotal;
+  $info{nobj} = $info{nci} + $info{nblob} + $ntree + $ntag;
+  return App::Git::StrongHash::ObjHasher->new(%info);
+}
 
-=head2 iter_blob()
+
+=head2 iter_tag
+
+=head2 iter_ci
+
+=head2 iter_tree
+
+=head2 iter_blob
+
+These create L<App::Git::StrongHash::Iterator>s which can
+
+=over 4
+
+=item iter_*() # with no arguments,
 
 Return L<App::Git::StrongHash::Listerator> containing sorted objectids
 of the requested type.
 
+=item iter_*(bin => $hasher)
+
+When passed an L<App::Git::StrongHash::ObjHasher>, return an Iterator
+which will read the objects from disk and send them to the ObjHasher
+in turn, yielding the C<output_bin> from each in order.
+
+=item iter_*(txt => $hasher)
+
+After passing objects to the ObjHasher, return C<<scalar $hasher->output_hex >>.
+
+=item iter_*(hash => $hasher)
+
+After passing objects to the ObjHasher, return C<<{ $hasher->output_hex } >>.
+
+=back
+
 =cut
 
 sub iter_tag {
-  my ($self) = @_;
+  my ($self, @arg) = @_;
   my $tags = $self->{tag};
   my $cit = $self->{ci_tree};
   return $self->_mkiter([ grep { !exists $cit->{$_} } values %$tags ]);
 }
 
 sub iter_ci {
-  my ($self) = @_;
+  my ($self, @arg) = @_;
   my $cit = $self->{ci_tree};
   return $self->_mkiter([ keys %$cit ]);
 }
 
 sub iter_tree {
-  my ($self) = @_;
+  my ($self, @arg) = @_;
   return $self->_mkiter([ keys %{ $self->{tree} } ]);
 }
 
 sub iter_blob {
-  my ($self) = @_;
+  my ($self, @arg) = @_;
   return $self->_mkiter([ keys %{ $self->{blob} } ]);
 }
 
 sub _mkiter {
-  my ($self, $list) = @_;
+  my ($self, $list, @arg) = @_;
   @$list = sort @$list;
-  return App::Git::StrongHash::Listerator->new($list);
+  my $iter = App::Git::StrongHash::Listerator->new($list);
+  if (!@arg) {
+    return $iter;
+  } elsif (2 == @arg) {
+    my ($mode, $hasher) = @arg;
+    my %mconv = (qw( txt output_txt  hash output_txtsref  bin output_bin ));
+    my $method = $mconv{$mode}
+      or croak "Unknown mode iter_*(@arg)";
+    die "incomplete";
+    # then we must tell it num-commits (for the header, to allow fast
+    # commit lookups), [num-object, num-blob, totsize-blob] (for
+    # completion stats), git-options (->_git or pass in us so it can
+    # ask)
+  } else {
+    croak "Unknown mode iter_*(@arg)";
+  }
 }
 
 
@@ -349,6 +407,29 @@ sub blobtotal {
     $num ++;
   }
   return wantarray ? ($tot, $num) : $tot;
+}
+
+
+=head2 mkdigesfile($fh, $hasher)
+
+Write to C<$fh> the header and body of the digestfile representing all
+objects discovered by the C<add_*> methods.  Returns nothing.  Caller
+opens and closes the file.
+
+=cut
+
+sub mkdigesfile {
+  my ($self, $fh, $hasher) = @_;
+  my $stream = App::Git::StrongHash::Penderator->new
+    ($self->iter_ci(bin => $hasher),
+     $self->iter_tag(bin => $hasher),
+     $self->iter_tree(bin => $hasher),
+     $self->iter_blob(bin => $hasher));
+  print {$fh} $hasher->header_bin or die "Writing header failed: $!";
+  while (my @nxt = $stream->nxt) {
+    print {$fh} $nxt[0] or die "Writing body failed: $!";
+  }
+  return;
 }
 
 
