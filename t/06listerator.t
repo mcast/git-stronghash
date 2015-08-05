@@ -12,7 +12,7 @@ use Local::TestUtil qw( tryerr ione t_nxt_wantarray );
 
 
 sub main {
-  plan tests => 9;
+  plan tests => 11;
   my $AGSL = 'App::Git::StrongHash::Listerator';
 
   my @N = qw( one two three four five six seven eight nine );
@@ -42,6 +42,10 @@ sub main {
   @{$in[1]} = qw( IS WHY );
   is_deeply(\@out, [ [ 'THIS' ], [qw[ IS WHY ]] ], "twolist remains linked")
     or diag explain { in => \@in, out => \@out, dont => $dont, iter => $iter };
+
+  $iter = $AGSL->new(("Bob") x 1000);
+  cmp_ok($iter->dcount, '==', 1000, "dcount");
+  is_deeply([ $iter->nxt ], [], "dcount empties");
 
   return 0;
 }

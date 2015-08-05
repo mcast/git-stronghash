@@ -11,7 +11,7 @@ use Local::TestUtil qw( tryerr ione plusNL detaint t_nxt_wantarray );
 
 
 sub main {
-  plan tests => 15;
+  plan tests => 16;
   my $AGSP = 'App::Git::StrongHash::Piperator';
 
   # using taint only to provoke fork failure, so accept any PATH
@@ -31,6 +31,8 @@ sub main {
 	 qr{^ERR:double finish in 'seq},
 	 "5..15 close;close");
   }
+
+  cmp_ok($AGSP->new(qw( seq 20 40 ))->dcount, '==', 21, "dcount");
 
   is_deeply([ $AGSP->new(qw( seq 1 4 ))->collect ],
 	    plusNL(1 .. 4), "1..4 collect");

@@ -40,6 +40,24 @@ sub collect {
   return @out;
 }
 
+
+=head2 dcount()
+
+Destructive count: consume the remaining elements of the iterator and
+return how many there were.
+
+=cut
+
+sub dcount {
+  my ($self) = @_;
+  my $n = 0;
+  while (my @nxt = $self->nxt) {
+    $n ++;
+  }
+  return $n;
+}
+
+
 =head2 prepend(@iter)
 
 =head2 append(@iter)

@@ -52,4 +52,19 @@ sub nxt {
   return ();
 }
 
+
+=head2 dcount()
+
+As for L<App::Git::StrongHash::Iterator/count> but faster.
+
+=cut
+
+sub dcount {
+  my ($self) = @_;
+  my $n = @{ $self->{lst} };
+  @{ $self->{lst} } = ();
+  return $n;
+}
+
+
 1;
