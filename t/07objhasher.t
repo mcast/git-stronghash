@@ -3,56 +3,16 @@ use strict;
 use warnings FATAL => 'all';
 
 use List::Util qw( sum );
-use File::Slurp qw( slurp write_file );
+use File::Slurp qw( slurp );
 use YAML qw( LoadFile Dump Load );
 use Test::More;
-use File::Temp 'tempfile';
 
 use App::Git::StrongHash;
 use App::Git::StrongHash::ObjHasher;
 
 use lib 't/lib';
-use Local::TestUtil qw( testrepo_or_skip tryerr );
+use Local::TestUtil qw( testrepo_or_skip tryerr hex2bin bin2hex fh_on );
 
-# tacky conversion of "hexdump -C" to binary
-sub hex2bin {
-  my ($txt) = @_;
-  return '(undef input)' unless defined $txt;
-  my $out = '';
-  foreach my $ln (split /\n/, $txt) {
-    my $orig = $ln;
-    die "need addr on $orig" unless $ln =~ s{^[0-9a-f]{8}(  +\b|\n?$)}{};
-    next if $ln eq '';
-    $ln =~ s{  \|.{1,16}\|$}{}; # optional ASCII translation
-    my @byte = $ln =~ m{\b([0-9a-f]{2})\b}g;
-    die "no hexbytes in $orig ($ln)" unless @byte;
-    $out .= join '', map { chr(hex($_)) } @byte;
-  }
-  return $out;
-}
-
-sub bin2hex {
-  my ($bin) = @_;
-  return "(devel code exists to generate hexdump)";
-  write_file("$0.tmp~", $bin);
-  my $hd = `hexdump -C $0.tmp~`;
-  return $hd;
-}
-
-sub fh_on {
-  my ($name, $blob) = @_;
-  # (open $fh, '<', \$data) are incompatible with sysread.
-  # IO::String was incompatible with (local $/ = \16).
-  # (open \$data) was giving me utf8 decoding issues.
-  #
-  # There may be a better way round all this, but the test should
-  # pass anyway.  Beware, we mix print+sysread here!
-  my ($fh, $filename) = tempfile("07objhasher.$name.XXXXXX", TMPDIR => 1);
-  $fh->autoflush(1);
-  print {$fh} $blob or die "print{$filename}: $!";
-  sysseek $fh, 0, 0 or die "sysseek($filename): $!";
-  return $fh;
-}
 
 sub main {
   my $testrepo = testrepo_or_skip();
