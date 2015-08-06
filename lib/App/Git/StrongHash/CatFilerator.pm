@@ -140,5 +140,44 @@ sub nxt {
   }
 }
 
+sub pipe_one { # incomplete - just some ideas
+  my ($self,
+      $pipe, # source of this is not yet clear, probably _mkiter($hasher)
+      $chunk,
+      $hasher, # on our iterator?
+     ) = @_;
+  $chunk ||= 128*1024;
+
+  # git cat-file --batch='%(objectname) %(objecttype) %(objectsize)' < objids.txt
+  # emits
+  #   <sha1> SP <type> SP <size> LF
+  #   <contents> LF
+  # or
+  #   <object> SP missing LF
+  $pipe->irs("\n");
+  my ($line) = $pipe->nxt;
+  return () unless defined $line;
+  my ($objid, $type, $size) = $line =~ m{^(\S+) (\S+) (\d+)$} or
+    die "cat-file parse fail on $line";
+  my $blksize = $chunk;
+  $pipe->irs(\$size);
+  my $blk;
+  while ($size >= $chunk) {
+    ($blk) = $pipe->nxt;
+    die "early end" unless defined $blk;
+    $hasher->add(\$blk);
+  }
+  if ($size > 0) {
+    $blksize = $size;
+    ($blk) = $pipe->nxt;
+    die "early end" unless defined $blk;
+    $hasher->add(\$blk);
+  }
+  $pipe->irs("\n");
+  ($blk) = $pipe->nxt;
+  $blk = '[eof]' unless defined $blk;
+  die "object unterminated ($blk)" unless $blk eq "\n";
+}
+
 
 1;
