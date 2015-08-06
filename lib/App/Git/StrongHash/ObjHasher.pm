@@ -392,6 +392,19 @@ sub output_hex {
   return $txt;
 }
 
+
+=head2 output_hex_hashref()
+
+Convenience wrapper for C<< { $self->output_hex } >>.
+
+=cut
+
+sub output_hex_hashref {
+  my ($self) = @_;
+  return { $self->output_hex };
+}
+
+
 {
   my %alg2name =
     qw(	1      SHA-1	

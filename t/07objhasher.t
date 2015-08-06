@@ -49,12 +49,12 @@ sub main {
   $H->newfile(commit => length($txt), $JUNK_CIID);
   $H->add($txt);
   subtest '0hundred' => sub {
-    my %row = $H->output_hex;
+    my $rowhash = $H->output_hex_hashref;
     my $row = $H->output_hex;
     my $bin = $H->output_bin;
     my $want = $DATA->{'01hundred_sums'};
-    is_deeply(\%row, $want->{kvp}, "01hundred_sums kvp")
-      or diag Dump({ row => \%row });
+    is_deeply($rowhash, $want->{kvp}, "01hundred_sums kvp")
+      or diag Dump({ row => $rowhash });
     is($row, $want->{txt}, "01hundred_sums txt");
     is($bin, hex2bin($want->{bin}), "01hundred_sums bin")
       or diag bin2hex($bin);
