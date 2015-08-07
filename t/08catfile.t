@@ -12,9 +12,10 @@ use App::Git::StrongHash::Objects;
 use App::Git::StrongHash::ObjHasher;
 use App::Git::StrongHash::Listerator;
 use App::Git::StrongHash::Penderator;
+use App::Git::StrongHash::CatFilerator;
 
 use lib 't/lib';
-use Local::TestUtil qw( testrepo_or_skip bin2hex );
+use Local::TestUtil qw( testrepo_or_skip bin2hex t_nxt_wantarray );
 
 
 sub main {
@@ -32,6 +33,8 @@ sub main {
 
     my $ids = App::Git::StrongHash::Listerator->new(@ids);
     my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $ids, 'output_hex');
+
+    t_nxt_wantarray($CF);
 
     my ($got) = $CF->nxt;
     is($got, "objid:25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb SHA-256:e3c00fad34dcefaec0e34cdd96ee51ab405e3ded97277f294a17a5153d36bffe\n", 'tree0');
@@ -85,7 +88,8 @@ sub tt_testrepo {
   $df_sha->add($df);
   $df_sha = $df_sha->hexdigest;
   is($df_sha,
-     'moo', # GuruChecksChanges; or at least wonders whether change is expected
+     'f50a640c06e2cb34aaf8fa99b57e7a2c1bdce664', # GuruChecksChanges; or at least wonders whether change is expected
+     # f50a...e664: I checked first+last few bytes of (objid,sha1,sha256) for first and last objects, they looked perfectly feasible
      'sha1(digestfile)')
     or diag bin2hex($df);
 

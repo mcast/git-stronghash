@@ -337,11 +337,9 @@ sub _mkiter {
     my %mconv = (qw( txt output_txt  hash output_txtsref  bin output_bin ));
     my $method = $mconv{$mode}
       or croak "Unknown mode iter_*(@arg)";
-    die "incomplete";
-    # then we must tell it num-commits (for the header, to allow fast
-    # commit lookups), [num-object, num-blob, totsize-blob] (for
-    # completion stats), git-options (->_git or pass in us so it can
-    # ask)
+    # XXX: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
+    return App::Git::StrongHash::CatFilerator->new
+      ($self, $hasher, $iter, $method);
   } else {
     croak "Unknown mode iter_*(@arg)";
   }
