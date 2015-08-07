@@ -15,12 +15,12 @@ use App::Git::StrongHash::Penderator;
 use App::Git::StrongHash::CatFilerator;
 
 use lib 't/lib';
-use Local::TestUtil qw( testrepo_or_skip bin2hex t_nxt_wantarray );
+use Local::TestUtil qw( testrepo_or_skip tryerr bin2hex t_nxt_wantarray );
 
 
 sub main {
   my $testrepo = testrepo_or_skip();
-  plan tests => 2;
+  plan tests => 3;
 
   subtest "catfile" => sub {
     my @ids = qw( 25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb
@@ -36,8 +36,14 @@ sub main {
 
     t_nxt_wantarray($CF);
 
+    my $tmp_fn = $CF->_ids_fn; # may go Away, but for now me must see cleanup
+    ok(-f $tmp_fn, "tmpfile exists ($tmp_fn)");
     my ($got) = $CF->nxt;
     is($got, "objid:25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb SHA-256:e3c00fad34dcefaec0e34cdd96ee51ab405e3ded97277f294a17a5153d36bffe\n", 'tree0');
+    {
+      local $TODO = 'early _cleanup would be nice';
+      ok(!-f $tmp_fn, "tmpfile gone (early)");
+    }
     ($got) = $CF->nxt;
     is($got, "objid:32823f581286f5dcff5ee3bce389e13eb7def3a8 SHA-256:cbd501dc604a1225934b26e4e5378fc670dd978e67c05f619f5717f502095ccf\n", 'tree1');
 
@@ -58,13 +64,32 @@ sub main {
 
     ($got) = $CF->nxt;
     is($got, undef, "eof");
+    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # XXX: move this up, we could _cleanup after first object returns
   };
 
+  subtest breakage => \&tt_breakage;
   subtest "test-data/" => sub { tt_testrepo($testrepo) };
 
   return 0;
 }
 
+
+sub tt_breakage {
+  my $mockrepo = Test::MockObject->new;
+  $mockrepo->mock(_git => sub { qw( echo foo ) });
+  my $H = Test::MockObject->new;
+  my $ids = App::Git::StrongHash::Listerator->new(qw( a10000 ee00ff ));
+  my $CF = App::Git::StrongHash::CatFilerator->new
+    ($mockrepo, $H, $ids, 'output_hex');
+  my $tmp_fn = $CF->_ids_fn;
+  is($CF->_ids_fn, $tmp_fn, "repeatable _ids_fn");
+  like(tryerr { $CF->_ids_dump }, qr{^ERR:read objids: too late at }, "dump objids once only");
+  $CF->_cleanup;
+  $CF->_cleanup; # should not error
+  is($CF->_ids_fn, undef, "_ids_fn cleared");
+
+  ok(0,'incomplete');
+}
 
 sub tt_testrepo {
   my ($testrepo) = @_;

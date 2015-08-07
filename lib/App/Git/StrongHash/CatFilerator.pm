@@ -73,6 +73,7 @@ sub _cleanup {
   my ($self) = @_;
   my $fn = $self->{objids_fn}; # not _ids_fn, don't create-just-to-unlink
   unlink $fn if defined $fn; # on error...  well we left some cruft
+  undef $self->{objids_fn};
   return;
 }
 
