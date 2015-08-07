@@ -41,6 +41,7 @@ sub new {
       objids => $objids, # is consumed in _ids_dump
       output_method => $output_method,
       # objids_fn => filename of tmpfile once made, then undef when unlinked
+      chunk => 128*1024, # bytes of object per bite
       cmd => \@cmd,
       caller => [ caller(0) ] };
   bless $self, $class;
@@ -57,7 +58,7 @@ sub _ids_dump {
     print {$fh} $nxt or die "printing to $filename: $!";
   }
   close $fh or die "closing $filename: $!";
-  $self{objids_fn} = $filename;
+  $self->{objids_fn} = $filename;
   return $filename;
 }
 
@@ -120,7 +121,10 @@ sub finish {
 
 =head2 nxt()
 
-In list context, return one item from the pipe; or nothing at
+In list context, fetch one Git object from the parent C<nxt> and feed
+it, in chunks if necessary, to the ObjHasher.
+
+Return the output of the chosen ObjHasher method; or nothing at
 successful EOF.
 
 =cut
@@ -128,55 +132,51 @@ successful EOF.
 sub nxt {
   my ($self) = @_;
   croak "wantarray!" unless wantarray;
-  my $fh = $self->{fh};
-  $self->fail("not running") unless $fh;
-  local $/ = $self->irs;
-  my $ln = <$fh>;
-  if (defined $ln) {
-    return ($ln);
-  } else {
-    $self->finish;
-    return ();
-  }
-}
+  my $chunk = $self->{chunk};
+  my $hasher = $self->{hasher};
+  my $output_method = $self->{output_method};
 
-sub pipe_one { # incomplete - just some ideas
-  my ($self,
-      $pipe, # source of this is not yet clear, probably _mkiter($hasher)
-      $chunk,
-      $hasher, # on our iterator?
-     ) = @_;
-  $chunk ||= 128*1024;
-
-  # git cat-file --batch='%(objectname) %(objecttype) %(objectsize)' < objids.txt
   # emits
   #   <sha1> SP <type> SP <size> LF
   #   <contents> LF
   # or
   #   <object> SP missing LF
-  $pipe->irs("\n");
-  my ($line) = $pipe->nxt;
+
+  # Object description
+  $self->irs("\n");
+  my ($line) = $self->SUPER::nxt;
   return () unless defined $line;
-  my ($objid, $type, $size) = $line =~ m{^(\S+) (\S+) (\d+)$} or
-    die "cat-file parse fail on $line";
-  my $blksize = $chunk;
-  $pipe->irs(\$size);
+
+  chomp $line;
+  my ($objid, $type, $size) = $line =~ m{^(\S+) (\S+)(?: (\d+))?$} or
+    $self->fail("cat-file parse fail on '\Q$line'");
+
+  if ($type eq 'missing') {
+    warn "Expected objectid $objid, it is missing\n";
+    return $self->nxt;
+  }
+
+  # Object contents follow
+  $hasher->newfile($type, $size, $objid);
   my $blk;
-  while ($size >= $chunk) {
-    ($blk) = $pipe->nxt;
-    die "early end" unless defined $blk;
-    $hasher->add(\$blk);
+  my $bytes_left = $size;
+  $self->irs(\$chunk);
+  while ($bytes_left > 0) {
+    $chunk = $bytes_left if $bytes_left < $chunk;
+    ($blk) = $self->SUPER::nxt;
+    $self->fail("EOF with $bytes_left/$size to go of $objid") if !defined $blk;
+    $hasher->add($blk);
+    $bytes_left -= length($blk);
   }
-  if ($size > 0) {
-    $blksize = $size;
-    ($blk) = $pipe->nxt;
-    die "early end" unless defined $blk;
-    $hasher->add(\$blk);
-  }
-  $pipe->irs("\n");
-  ($blk) = $pipe->nxt;
+
+  # Trailing LF
+  $self->irs("\n");
+  ($blk) = $self->SUPER::nxt;
   $blk = '[eof]' unless defined $blk;
-  die "object unterminated ($blk)" unless $blk eq "\n";
+  $self->fail("object $objid unterminated ($blk)") unless $blk eq "\n";
+
+  # Return value
+  return scalar $hasher->$output_method;
 }
 
 

@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use App::Git::StrongHash::Piperator;
+use App::Git::StrongHash::CatFilerator;
 use App::Git::StrongHash::Listerator;
 use App::Git::StrongHash::ObjHasher;
 
@@ -306,23 +307,23 @@ sub iter_tag {
   my ($self, @arg) = @_;
   my $tags = $self->{tag};
   my $cit = $self->{ci_tree};
-  return $self->_mkiter([ grep { !exists $cit->{$_} } values %$tags ]);
+  return $self->_mkiter([ grep { !exists $cit->{$_} } values %$tags ], @arg);
 }
 
 sub iter_ci {
   my ($self, @arg) = @_;
   my $cit = $self->{ci_tree};
-  return $self->_mkiter([ keys %$cit ]);
+  return $self->_mkiter([ keys %$cit ], @arg);
 }
 
 sub iter_tree {
   my ($self, @arg) = @_;
-  return $self->_mkiter([ keys %{ $self->{tree} } ]);
+  return $self->_mkiter([ keys %{ $self->{tree} } ], @arg);
 }
 
 sub iter_blob {
   my ($self, @arg) = @_;
-  return $self->_mkiter([ keys %{ $self->{blob} } ]);
+  return $self->_mkiter([ keys %{ $self->{blob} } ], @arg);
 }
 
 sub _mkiter {

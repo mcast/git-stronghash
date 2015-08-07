@@ -10,5 +10,9 @@ WriteMakefile
    {
     'Try::Tiny' => 0,
    },
+   TEST_REQUIRES =>
+   {
+    'Test::MockObject' => 0,
+   },
    ABSTRACT     => 'App::Git::StrongHash provides git-stronghash which adds secure hashing to repository contents',
    AUTHOR     => 'Matthew Astley <mcast@cpan.org>');
