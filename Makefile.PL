@@ -9,6 +9,8 @@ WriteMakefile
    PREREQ_PM    =>
    {
     'Try::Tiny' => 0,
+    'File::Slurp' => 0,
+    'YAML' => 0,
    },
    TEST_REQUIRES =>
    {
