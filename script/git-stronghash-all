@@ -1,0 +1,19 @@
+#! perl
+use strict;
+use warnings;
+
+use Cwd;
+use App::Git::StrongHash::Objects;
+
+
+sub main {
+  die "Syntax: $0 > myrepo.stronghash\n" if @ARGV || -t STDOUT;
+  my $cwd = cwd();
+  my $repo = App::Git::StrongHash::Objects->new($cwd);
+  $repo->add_tags->add_commits->add_trees;
+  my $hasher = $repo->mkhasher(htype => [qw[ sha256 ]]);
+  $repo->mkdigesfile(\*STDOUT, $hasher);
+  return 0;
+}
+
+exit main();

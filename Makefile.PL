@@ -16,5 +16,6 @@ WriteMakefile
    {
     'Test::MockObject' => 0,
    },
+   EXE_FILES => [qw[ script/git-stronghash-all ]],
    ABSTRACT     => 'App::Git::StrongHash provides git-stronghash which adds secure hashing to repository contents',
    AUTHOR     => 'Matthew Astley <mcast@cpan.org>');
