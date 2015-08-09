@@ -93,6 +93,7 @@ Based on my interpretation of this, informed by many articles (references now lo
 * [ ] Notice when A:G:SH:Objects discovers new objects which relate only to the previous signature, and defer
 * [ ] Stream digestfiles directly into some other ref namespace
 * [ ] Machinery to get these signed by something from time to time
+* [ ] Tool to tell which digestfile covers a specific object; accept pipe from git-ls-tree, and annotate
 
 ```
 git grep -nE 'TO[D]O' | perl -i -e 'undef $/; $todo=<STDIN>; $todo =~ s{^README.*\n}{}mg; $_=<>; s{^(## in-source\n).*?\n\n}{$1\x60\x60\x60\n$todo\x60\x60\x60\n\n}ms; print' README.md
