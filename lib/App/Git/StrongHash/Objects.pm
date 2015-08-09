@@ -213,6 +213,7 @@ sub add_trees {
   my @treeq =
     grep { !exists $trees->{$_} }
     values %{ $self->{ci_tree} };
+  my %treeci_ignored; # XXX: delete later
 
   while (@treeq) {
     my %scanned;
@@ -223,7 +224,7 @@ sub add_trees {
       # 100644 blob 03c56aa7f2f917ff2c24f88fd1bc52b0bab7aa17      12	d2/shopping.txt
       # 100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391       0	mtgg
       # 100644 blob f00c965d8307308469e537302baa73048488f162      21	ten
-      iregex(qr{^\s*([0-7]{6}) (tree|blob) ([0-9a-f]+)\s+(-|\d+)\t(.+)\x00},
+      iregex(qr{^\s*([0-7]{6}) (tree|blob|commit) ([0-9a-f]+)\s+(-|\d+)\t(.+)\x00},
 	     "Can't read lstree(mode,type,objid,size,name)");
     while (my ($nxt) = $ls_tree->nxt) {
       my ($mode, $type, $objid, $size, $name) = @$nxt;
@@ -232,6 +233,10 @@ sub add_trees {
 	next if exists $trees->{$objid};
 	next if exists $scanned{$objid}; # uncoverable branch true (too tricky to arrange, and only a shortcut)
 	push @treeq, $objid;
+
+      } elsif ($type eq 'commit') {
+        warn "XXX: Ignoring submodule '$mode $type $objid $size $name'"
+          unless $treeci_ignored{"$objid:$name"}++;;
 
       } else {
 	if ($type eq 'blob') { # uncoverable branch false (last case, weird structure for 'impossible')
