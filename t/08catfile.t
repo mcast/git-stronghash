@@ -70,6 +70,9 @@ sub main {
   subtest breakage => \&tt_breakage;
   subtest "test-data/" => sub { tt_testrepo($testrepo) };
 
+  local $TODO = 'L8R';
+  fail('check zombie acculumation');
+
   return 0;
 }
 

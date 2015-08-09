@@ -98,6 +98,8 @@ isn't relying only on the cache to be correct.
 
 XXX: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
 
+XXX: should find topdir, and check it's actually a git_dir
+
 =cut
 
 sub new {
@@ -145,7 +147,7 @@ Return self.
 sub add_tags {
   my ($self) = @_;
   my $tags = $self->{tag} ||= {}; # refs/foo => tagid or commitid
-  my $showtags = $self->_git(qw( show-ref --tags ))->
+  my $showtags = $self->_git(qw( show-ref --tags --head ))->
     # Sample data - blobids are abbreviated here for legibility
     # 4ef2c940 refs/tags/fif
     # d9101db5 refs/tags/goldfish
@@ -153,6 +155,8 @@ sub add_tags {
     iregex(qr{^(\w+)\s+(\S+)$}, "Can't read tagid,tagref");
   while (my ($nxt) = $showtags->nxt) {
     my ($tagid, $tagref) = @$nxt;
+    # XXX:UNTESTED If there are no tags, "git show-ref --tags" returns 1 with no text.  We need some output, just ignore it.
+    next if $tagref eq 'HEAD';
     $tags->{$tagref} = $tagid;
   }
   return $self;
