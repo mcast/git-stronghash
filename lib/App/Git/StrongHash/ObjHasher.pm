@@ -242,7 +242,7 @@ sub header_txt {
      nobj => $self->{nobj},
      progv => $self->{code},
      htype => (join ',', $self->_htype),
-     comment => 'n/c', # XXX: add API for optional comment
+     comment => 'n/c', # TODO: add API for optional comment
 
      # local timestamp - an obvious thing to include, but what value?
      # strong timestamped signatures will follow anyway, it's just

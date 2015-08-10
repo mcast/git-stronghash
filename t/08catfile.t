@@ -64,7 +64,7 @@ sub main {
 
     ($got) = $CF->nxt;
     is($got, undef, "eof");
-    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # XXX: move this up, we could _cleanup after first object returns
+    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
   };
 
   subtest breakage => \&tt_breakage;

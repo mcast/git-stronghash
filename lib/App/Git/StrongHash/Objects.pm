@@ -96,9 +96,9 @@ isn't relying only on the cache to be correct.
 
 =head2 new($git_dir)
 
-XXX: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
+TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
 
-XXX: should find topdir, and check it's actually a git_dir
+TODO: should find topdir, and check it's actually a git_dir
 
 =cut
 
@@ -123,7 +123,7 @@ sub _git {
   }
 }
 
-# XXX: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
+# TODO: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
 sub _git_many {
   my ($self, $subcmd, $n_up, @arg) = @_;
   my @iter;
@@ -155,7 +155,7 @@ sub add_tags {
     iregex(qr{^(\w+)\s+(\S+)$}, "Can't read tagid,tagref");
   while (my ($nxt) = $showtags->nxt) {
     my ($tagid, $tagref) = @$nxt;
-    # XXX:UNTESTED If there are no tags, "git show-ref --tags" returns 1 with no text.  We need some output, just ignore it.
+    # TODO:UNTESTED If there are no tags, "git show-ref --tags" returns 1 with no text.  We need some output, just ignore it.
     next if $tagref eq 'HEAD';
     $tags->{$tagref} = $tagid;
   }
@@ -180,7 +180,7 @@ sub add_commits {
   # git log --all brings all current refs, but may have been given deleted tags+commitids
   my $ciinfo = $self->_git_many
     ([qw[ log --format=%H%x09%T%x09%P%x09%x23%x20%cI%x20%d%x20%s ]], 20, '--all', @maybe_dele)->
-    # XXX:OPT not sure we need all this data now, but it's in the commitblob anyway
+    # TODO:OPT not sure we need all this data now, but it's in the commitblob anyway
     # Sample data - blobids are abbreviated here for legibility
     # 34570e3b	8f0cc215	5d88f523 f81423b6 9385c934	# 2015-07-30T22:14:27+01:00  (HEAD, brA) Merge branch 'brB', tag 'goldfish' into brA
     # 9385c934	89a7d23f	f40b4bd2	# 2015-07-26T17:21:57+01:00  (tag: goldfish) magoldfish
@@ -202,7 +202,7 @@ sub add_commits {
 List into this object the contents of all known trees, recursing to
 collect subtrees and blobids.  Returns self.
 
-XXX:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
+TODO:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
 
 =cut
 
@@ -213,7 +213,7 @@ sub add_trees {
   my @treeq =
     grep { !exists $trees->{$_} }
     values %{ $self->{ci_tree} };
-  my %treeci_ignored; # XXX: delete later
+  my %treeci_ignored; # TODO: delete later
 
   while (@treeq) {
     my %scanned;
@@ -235,7 +235,7 @@ sub add_trees {
 	push @treeq, $objid;
 
       } elsif ($type eq 'commit') {
-        warn "XXX: Ignoring submodule '$mode $type $objid $size $name'"
+        warn "TODO: Ignoring submodule '$mode $type $objid $size $name'"
           unless $treeci_ignored{"$objid:$name"}++;;
 
       } else {
@@ -254,9 +254,9 @@ sub add_trees {
   return $self;
 }
 
-# XXX: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
-# XXX: add_stash, add_reflog - evidence for anything else that happens to be kicking around
-# XXX:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
+# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
+# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
+# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
 
 =head2 mkhasher(%info)
 
@@ -270,7 +270,7 @@ sub mkhasher {
   my ($self, %info) = @_;
   $info{nci} = scalar keys %{ $self->{ci_tree} };
   my $ntree  = scalar keys %{ $self->{tree} };
-  my $ntag = $self->iter_tag->dcount; # XXX:OPT more code, less memory?
+  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
   @info{qw{ blobbytes nblob }} = $self->blobtotal;
   $info{nobj} = $info{nci} + $info{nblob} + $ntree + $ntag;
   return App::Git::StrongHash::ObjHasher->new(%info);
@@ -346,7 +346,7 @@ sub _mkiter {
     my %mconv = (qw( txt output_txt  hash output_txtsref  bin output_bin ));
     my $method = $mconv{$mode}
       or croak "Unknown mode iter_*(@arg)";
-    # XXX: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
+    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
     return App::Git::StrongHash::CatFilerator->new
       ($self, $hasher, $iter, $method);
   } else {
