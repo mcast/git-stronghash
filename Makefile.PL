@@ -12,6 +12,20 @@ WriteMakefile
     'File::Slurp' => 0,
     'YAML' => 0,
    },
+   BUILD_REQUIRES => { 'ExtUtils::MakeMaker' => '6.64' }, # for TEST_REQUIRES to work
+   META_MERGE =>
+   {
+    "meta-spec" => { version => 2 },
+    resources =>
+    {
+     repository =>
+     {
+      type => 'git',
+      url => 'git://github.com/mcast/git-stronghash.git',
+      web => 'https://github.com/mcast/git-stronghash',
+     },
+    },
+   },
    TEST_REQUIRES =>
    {
     'Test::MockObject' => 0,
