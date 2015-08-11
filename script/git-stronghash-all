@@ -3,16 +3,22 @@ use strict;
 use warnings;
 
 use Cwd;
+use Getopt::Long;
 use App::Git::StrongHash::Objects;
 
 
 sub main {
-  die "Syntax: $0 > myrepo.stronghash\n" if @ARGV || -t STDOUT;
+  my @htype;
+  GetOptions('htype|t=s', \@htype);
+  die "Syntax: $0 [ -t <hashtype> ]* > myrepo.stronghash\n" if @ARGV || -t STDOUT;
+  @htype = qw( sha256 ) unless @htype;
+
   my $cwd = cwd();
   my $repo = App::Git::StrongHash::Objects->new($cwd);
   $repo->add_tags->add_commits->add_trees;
-  my $hasher = $repo->mkhasher(htype => [qw[ sha256 ]]);
+  my $hasher = $repo->mkhasher(htype => \@htype);
   $repo->mkdigesfile(\*STDOUT, $hasher);
+
   return 0;
 }
 

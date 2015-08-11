@@ -50,7 +50,6 @@ lib/App/Git/StrongHash/Objects.pm:273:  my $ntag = $self->iter_tag->dcount; # TO
 lib/App/Git/StrongHash/Objects.pm:349:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
 lib/App/Git/StrongHash/Piperator.pm:41:# TODO: new_later : defer via a Laterator
 lib/App/Git/StrongHash/Piperator.pm:42:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
-t/04app.t:15:    local $TODO = 'write the app and script stub parts';
 t/08catfile.t:44:      local $TODO = 'early _cleanup would be nice';
 t/08catfile.t:67:    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
 t/08catfile.t:73:  local $TODO = 'L8R';
