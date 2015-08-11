@@ -34,7 +34,7 @@ may change.
 
 sub new {
   my ($class, $repo, $hasher, $objids, $output_method) = @_;
-  my @cmd = ($repo->_git, 'cat-file', '--batch=%(objectname) %(objecttype) %(objectsize)');
+  my @cmd = ($repo->_git, qw( cat-file --batch ));
   my $self =
     { repo => $repo,
       hasher => $hasher,
