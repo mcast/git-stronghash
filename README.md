@@ -54,7 +54,7 @@ Based on my interpretation of this, informed by many articles (references now lo
 
 ## Current state
 
-* 0.01 can [dump a file](https://github.com/mcast/git-stronghash/commit/56b081522d854be9084470b23ad72880a35723cd) containing SHA-256es of everything in this project so far.  I [got it signed](http://virtual-notary.org/log/ac20e7eb-b833-4b59-92e9-9ef069e63373/) manually.
+* [0.01](https://github.com/mcast/git-stronghash/releases/tag/0.01) can [dump a file](https://github.com/mcast/git-stronghash/commit/56b081522d854be9084470b23ad72880a35723cd) containing SHA-256es of everything in this project so far.  I [got it signed](http://virtual-notary.org/log/ac20e7eb-b833-4b59-92e9-9ef069e63373/) manually.
 
 # Local vapourware queue
 
