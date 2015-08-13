@@ -1,18 +1,53 @@
 # Background
 
 There have been discussions about the security of SHA-1 for Git object ids, most famously back in about 2006
-* http://kerneltrap.org/mailarchive/git/2006/8/27/211001 or [via the marvellous and handy Wayback Machine](https://web.archive.org/web/20090131233821/http://kerneltrap.org/mailarchive/git/2006/8/27/211001)
+
+* Parts of the Git mailing list thread of 2006/08/27 [Starting to think about sha-256?](http://thread.gmane.org/gmane.comp.version-control.git/26106)
+    * [Linus believed](http://thread.gmane.org/gmane.comp.version-control.git/26106/focus=26204) that SHA-1 plus sanitary git-fetch behaviour is enough.
+
+		> Yeah, I don't think this is at all critical, especially since git really on a security level doesn't _depend_ on the hashes being cryptographically secure. As I explained early on (ie over a year ago, back when the whole design of git was being discussed), the _security_ of git actually depends on not cryptographic hashes, but simply on everybody being able to secure their own _private_ repository.
+		>
+		> So the only thing git really _requires_ is a hash that is _unique_ for the developer (and there we are talking not of an _attacker_, but a benign participant).
+		>
+		> That said, the cryptographic security of SHA-1 is obviously a real bonus.  So I'd be disappointed if SHA-1 can be broken more easily (and I obviously already argued against using MD5, exactly because generating duplicates of that is fairly easy). But it's not "fundamentally required" in git per se.
+
+    * That proposal implies history-rewriting change on an irregular basis.  [Florian wrote](http://thread.gmane.org/gmane.comp.version-control.git/26106/focus=26204)
+
+		>[...]
+		>> Maybe sha-256 could be considered for the next major-rev of git?
+		>
+		> And in 2008 [ two years from OP -- m ], you'd have to rewrite history again, to use the next "stronger" hash function?
+
+* On the Git mailing list 2005/04/16 [SHA1 hash safety](http://thread.gmane.org/gmane.comp.version-control.git/295),
+    * Repository [migration to stronger hashes](http://thread.gmane.org/gmane.comp.version-control.git/295/focus=368) for the objectids is possible, but what about all the places in the code and documentation which refer to those ids?  It was bad enough they broke upon leaving Subversion.
+
+		> I believe Linus has already stated on this list [ can't find it -- m ] that his plan is to eventually provide a tool for bulk migration of an existing SHA1 git repository to a new hash type.  Basically munging through the repository in bulk, replacing all the hashes.  This seems a perfectly adequate strategy at the moment.
+
+* On Stackoverflow, [How would git handle a SHA-1 collision on a blob?](http://stackoverflow.com/a/9392525)
+* On the value of knowing what should be in the repository, [The Linux Backdoor Attempt of 2003](https://freedom-to-tinker.com/blog/felten/the-linux-backdoor-attempt-of-2003/) (via [TacticalCoder on HN](https://news.ycombinator.com/item?id=7628161))
+* [Size of the git sha1 collision attack surface](http://joeyh.name/blog/entry/size_of_the_git_sha1_collision_attack_surface/) via LWN, [Dealing with weakness in SHA-1](https://lwn.net/Articles/337745/)
+* On the cost of changing hashing algorithms, [Why Google is Hurrying the Web to Kill SHA-1](https://konklone.com/post/why-google-is-hurrying-the-web-to-kill-sha-1)
+* Amusing toys for making hash prefix collisions [beautify_git_hash](https://github.com/vog/beautify_git_hash) and [gitbrute](https://github.com/bradfitz/gitbrute) / [deadbeef](https://github.com/bradfitz/deadbeef) are...  just that.
+* Implementation note: when we speak of Git SHA-1 hashes, the reason they don't match the output of [`sha1sum`](https://en.wikipedia.org/wiki/Sha1sum#External_links) upon your file is the header which [`git hash-object`](http://git-scm.com/docs/git-hash-object) prepends.
 
 # The Plan
 
+Based on my interpretation of this, informed by many articles (references now lost),
+
 1. SHA-1 objectids work just fine for identifying objects in a repository where nobody is maliciously inserting data.  So leave them alone.
-2. SHA-1 or stronger objectids do nothing to prove the object was not tampered with (e.g. `git filter-branch`) since it was written, anyway.  So some reinforcement is necessary whatever hash is in use.
-3. Git provides hooks, branch namespaces and other types of refs.  There is room to maintain extra data here.
-4. Hash everything in the repository and sign the result.  Maintain this efficiently.
-    * Choose hash(es) to suit.  By paying the price of hashing everything again, we are untied from SHA-1.
-    * Hold the hash data compactly without compromising security.  Hashes are stored full-length in binary.
-    * Don't change it once it has been written.
+2. Choose stronger hash(es) to suit.  Accept the price of hashing everything again, and storing those hashes, and we are untied from SHA-1.
+    * We now have an objectid hash and a security hash.  They are different.
+    * The security hashes need to be stored somewhere.  Git is an object storage system, so we'll use that.
+3. Hash everything in the repository and sign the resulting digest.  Maintain this efficiently.
+    * Hashes in the digestfile must be full-length for full security, and in binary for efficiency.
+    * Don't change a digestfile once it has been written.  Unless the repository history is rewritten, then the old digestfiles may become useless.
     * For incremental signing, it must be possible to rapidly check previous signatures.
+4. Use branch namespaces and other types of refs to hold the data.  *Fuzziness here.*
+5. Use Git hooks to maintain the digestfiles.  *More fuzziness.  We probably want a digestfile per work session, not per commit.*
+6. The hashes themselves (whether SHA-1 or something stronger) do nothing to prove the object was not tampered with since it was written (e.g. `git filter-branch`).  Some reinforcement is necessary whatever hash is in use,
+    * getting it digitally signed in some reliable way
+    * writing the full hash down on paper in your secret code and hiding it under the carpet
+    * keeping the repository secure, so that nobody but you can push objects into it or change the refs
 
 ## Current state
 
