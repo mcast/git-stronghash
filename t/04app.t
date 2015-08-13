@@ -19,6 +19,14 @@ sub main {
   $bin =~ s{/lib$}{/script}
     or die "Can't make blib/script from $bin";
 
+  if (defined (my $hps = $ENV{HARNESS_PERL_SWITCHES})) {
+    # e.g. " -MDevel::Cover=-db,/mumble/git-stronghash/cover_db"
+    my ($cover) = $hps =~ m{\s(-MDevel::Cover=\S+)(\s|$)}
+      or die "Got HARNESS_PERL_SWITCHES='$hps' with no coverage options";
+    die "PERL5OPT='$ENV{PERL5OPT}' already..?" if defined $ENV{PERL5OPT};
+    $ENV{PERL5OPT} = $cover;
+  }
+
   my $cmd = "cd $testrepo && $bin/git-stronghash-all -t sha1 -t sha256";
   my $digestfile = qx{$cmd};
   note explain { len => length($digestfile), cmd => $cmd };
