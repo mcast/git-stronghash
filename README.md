@@ -48,6 +48,9 @@ Based on my interpretation of this, informed by many articles (references now lo
     * getting it digitally signed in some reliable way
     * writing the full hash down on paper in your secret code and hiding it under the carpet
     * keeping the repository secure, so that nobody but you can push objects into it or change the refs
+7. If/when the chosen hashes are devalued, repeat the process with newer hashes.
+    * Naturally, any new timestamp signatures made with new hashes cannot be backdated to match the age of the weakening ones.
+    * Refreshing the hash type while the old one is merely suspect, rather than known to be broken, might lend some weight to the old signature files.  They would demonstrably (by the new hash) have been in existence at that point in time before public attacks were known on the old hash.
 
 ## Current state
 
