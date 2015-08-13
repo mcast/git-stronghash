@@ -56,6 +56,13 @@ Based on my interpretation of this, informed by many articles (references now lo
 
 * [0.01](https://github.com/mcast/git-stronghash/releases/tag/0.01) can [dump a file](https://github.com/mcast/git-stronghash/commit/56b081522d854be9084470b23ad72880a35723cd) containing SHA-256es of everything in this project so far.  I [got it signed](http://virtual-notary.org/log/ac20e7eb-b833-4b59-92e9-9ef069e63373/) manually.
 
+## Open Questions
+
+* Should the file format be more generic?  Rename the project?
+    * I can think of other collections of files I might want to sign incrementally.
+    * Maybe I should just put those files in a git / git-annex repository.
+    * Other VC systems might want the same solution to this problem.  They would need their own objectid collection and digestfile stashing, but otherwise code can be shared.
+
 # Local vapourware queue
 
 * [ ] The licence!  Either GPLv3 (my prejudice) or same-terms-as-Git, undecided.
