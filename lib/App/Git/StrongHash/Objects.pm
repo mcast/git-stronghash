@@ -147,7 +147,7 @@ Return self.
 sub add_tags {
   my ($self) = @_;
   my $tags = $self->{tag} ||= {}; # refs/foo => tagid or commitid
-  my $showtags = $self->_git(qw( show-ref --tags --head ))->
+  my $showtags = $self->_git(qw( show-ref --tags --heads ))->
     # Sample data - blobids are abbreviated here for legibility
     # 4ef2c940 refs/tags/fif
     # d9101db5 refs/tags/goldfish
@@ -155,8 +155,8 @@ sub add_tags {
     iregex(qr{^(\w+)\s+(\S+)$}, "Can't read tagid,tagref");
   while (my ($nxt) = $showtags->nxt) {
     my ($tagid, $tagref) = @$nxt;
-    # TODO:UNTESTED If there are no tags, "git show-ref --tags" returns 1 with no text.  We need some output, just ignore it.
-    next if $tagref eq 'HEAD';
+    # If there are no tags, older "git show-ref --tags" returns 1 with no text.  We need some output, just ignore it.
+    next if $tagref =~ m{^HEAD$|^refs/heads/};
     $tags->{$tagref} = $tagid;
   }
   return $self;

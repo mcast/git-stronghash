@@ -26,7 +26,8 @@ sub cmpobj {
 
 sub main {
   my $testrepo = testrepo_or_skip();
-  plan tests => 4;
+  my $testrepo_notags = testrepo_or_skip("-no-tags");
+  plan tests => 5;
 
   my $repo;
   my $RST = sub { $repo = App::Git::StrongHash::Objects->new($testrepo) };
@@ -108,6 +109,21 @@ sub main {
     my ($want_num, $want_tot) = (scalar @blobsize, sum(@blobsize));
     is(scalar $repo->blobtotal, $want_tot, "blobtotal (scalar)");
     is_deeply([ $repo->blobtotal ], [ $want_tot, $want_num ], "blobtotal (list)");
+  };
+
+  subtest no_tags => sub {
+    $repo = App::Git::StrongHash::Objects->new($testrepo_notags);
+    $repo->add_tags;
+    is_deeply([ $repo->iter_tag->collect ],
+              [], "iter_tag");
+    is_deeply([ $repo->iter_ci->collect ],
+              [], "iter_ci (from tags)");
+    $repo->add_commits->add_trees;
+    is_deeply([ $repo->iter_ci->collect ],
+              [qw[
+    b105de8d622dab99968653e591d717bc9d753eaf
+    c01bc611289464a647771cc6497df9e1daeaf981
+                ]], "iter_ci");
   };
 
   return 0;

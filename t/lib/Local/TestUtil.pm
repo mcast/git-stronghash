@@ -46,12 +46,15 @@ sub t_nxt_wantarray {
 }
 
 sub testrepo_or_skip {
+  my ($suffix) = @_;
   my $testrepo = $0;
-  $testrepo =~ s{t/\S+\.t$}{test-data}
-    or die "Can't make test-data/ on $testrepo";
+  my $name = 'test-data';
+  $name .= $suffix if defined $suffix;
+  $testrepo =~ s{t/\S+\.t$}{$name}
+    or die "Can't make $name/ on $testrepo";
   unless (-d $testrepo && -f "$testrepo/.git/config") {
     main::note " => # git clone $testrepo.bundle # will make it";
-    main::plan skip_all => "test-data/ not expanded from bundle?";
+    main::plan skip_all => "$name/ not expanded from bundle?";
   }
   return $testrepo;
 }
