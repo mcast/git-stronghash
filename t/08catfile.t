@@ -20,7 +20,7 @@ use Local::TestUtil qw( testrepo_or_skip tryerr bin2hex t_nxt_wantarray );
 
 sub main {
   my $testrepo = testrepo_or_skip();
-  plan tests => 3;
+  plan tests => 5;
 
   subtest "catfile" => sub {
     my @ids = qw( 25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb
@@ -68,6 +68,7 @@ sub main {
   };
 
   subtest breakage => \&tt_breakage;
+  subtest missing  => \&tt_missing;
   subtest "test-data/" => sub { tt_testrepo($testrepo) };
 
   local $TODO = 'L8R';
@@ -78,11 +79,15 @@ sub main {
 
 
 sub tt_breakage {
+  my @w;
+  local $SIG{__WARN__} = sub { push @w, "@_" };
+
+  my ($L1, $L2);
   my $mockrepo = Test::MockObject->new;
   $mockrepo->mock(_git => sub { qw( echo foo ) });
   my $H = Test::MockObject->new;
   my $ids = App::Git::StrongHash::Listerator->new(qw( a10000 ee00ff ));
-  my $CF = App::Git::StrongHash::CatFilerator->new
+  $L1 = __LINE__; my $CF = App::Git::StrongHash::CatFilerator->new
     ($mockrepo, $H, $ids, 'output_hex');
   my $tmp_fn = $CF->_ids_fn;
   is($CF->_ids_fn, $tmp_fn, "repeatable _ids_fn");
@@ -90,8 +95,40 @@ sub tt_breakage {
   $CF->_cleanup;
   $CF->_cleanup; # should not error
   is($CF->_ids_fn, undef, "_ids_fn cleared");
+  like(tryerr { my @n = $CF->nxt; $n[0] },
+       qr{^ERR:cat-file parse fail on 'foo\\ cat\\-file\\ \\-\\-batch' in 'echo },
+       "already running / can't parse echo");
+  like(tryerr { $CF->_start }, # (again - it was called in new)
+       qr{^ERR:read objids_fn: too late at }, "can't restart");
+  is(scalar @w, 0, "no warning yet");
+  undef $CF; $L2 = __LINE__;
+  is(scalar @w, 1, "one warning") or note explain { w => \@w };
+  is(shift @w,
+     "[w] DESTROY before close on 'echo foo cat-file --batch' from $0:$L1 at $0 line $L2.\n",
+     "close fail warn");
+  return;
+}
 
-  ok(0,'incomplete');
+sub tt_missing {
+  my $testrepo = testrepo_or_skip();
+  my $R = App::Git::StrongHash::Objects->new($testrepo);
+  my $H = App::Git::StrongHash::ObjHasher->new
+    (htype => [qw[ sha256 ]], nci => 2, nobj => 2, nblob => 0, blobbytes => 0);
+  my $ids = App::Git::StrongHash::Listerator->new
+    (qw( 123456789abcdef0123456789abcdef012345678 96cc5588 )); # missing; seq 1 50
+  my @w;
+  local $SIG{__WARN__} = sub { push @w, "@_" };
+
+  my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $ids, 'output_hex');
+  my @n = $CF->nxt;
+  is($n[0],
+     "objid:96cc558853a03c5d901661af837fceb7a81f58f6 SHA-256:02d36ee22aefffbb3eac4f90f703dd0be636851031144132b43af85384a2afcd\n",
+     'sha256(seq 1 50)');
+  is(scalar @w, 1, "one warning") or note explain { w => \@w };
+  is(shift @w,
+     "Expected objectid 123456789abcdef0123456789abcdef012345678, it is missing\n",
+     "tell of missing");
+  return;
 }
 
 sub tt_testrepo {

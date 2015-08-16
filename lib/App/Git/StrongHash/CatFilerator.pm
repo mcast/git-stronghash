@@ -125,6 +125,9 @@ sub finish {
 In list context, fetch one Git object from the parent C<nxt> and feed
 it, in chunks if necessary, to the ObjHasher.
 
+When the objectid comes back missing, C<warn> and continue with the
+next.
+
 Return the output of the chosen ObjHasher method; or nothing at
 successful EOF.
 
@@ -150,7 +153,7 @@ sub nxt {
 
   chomp $line;
   my ($objid, $type, $size) = $line =~ m{^(\S+) (\S+)(?: (\d+))?$} or
-    $self->fail("cat-file parse fail on '\Q$line'");
+    $self->fail("cat-file parse fail on '\Q$line\E'");
 
   if ($type eq 'missing') {
     warn "Expected objectid $objid, it is missing\n";
