@@ -5,11 +5,12 @@ use warnings FATAL => 'all';
 use List::Util qw( sum );
 use YAML qw( LoadFile Dump );
 use Test::More;
+use Cwd 'cwd';
 
 use App::Git::StrongHash::Objects;
 
 use lib 't/lib';
-use Local::TestUtil qw( testrepo_or_skip );
+use Local::TestUtil qw( testrepo_or_skip tryerr );
 
 my $GURU_CHECKED;
 sub cmpobj {
@@ -27,7 +28,7 @@ sub cmpobj {
 sub main {
   my $testrepo = testrepo_or_skip();
   my $testrepo_notags = testrepo_or_skip("-no-tags");
-  plan tests => 5;
+  plan tests => 8;
 
   my $repo;
   my $RST = sub { $repo = App::Git::StrongHash::Objects->new($testrepo) };
@@ -44,6 +45,13 @@ sub main {
   $RST->();
   $repo->add_commits;
   cmpobj(add_commits => $repo);
+
+  like(tryerr { $repo->iter_ci('spork') },
+       qr{^\QERR:Unknown modetype iter_*(spork) at $0 line},
+       "_mkiter weird mode");
+  like(tryerr { $repo->iter_ci(spork => 'boff') },
+       qr{^\QERR:Unknown mode iter_*(spork boff) at $0 line},
+       "_mkiter weird mode");
 
   $RST->();
   subtest add_trees => sub {
@@ -124,6 +132,30 @@ sub main {
     b105de8d622dab99968653e591d717bc9d753eaf
     c01bc611289464a647771cc6497df9e1daeaf981
                 ]], "iter_ci");
+  };
+
+  subtest submodule => sub {
+    my @submod_versions =
+      # git log -p | grep -E '^\+Subproject commit ' | cut -d' ' -f3 | sort
+      qw(
+          34570e3bd4ef302f7eefc5097d4471cdcec108b9
+          5d88f523fa75b55dc9b6c71bf1ee2fba8a32c0a5
+          b105de8d622dab99968653e591d717bc9d753eaf
+       ); # two submods, one has two versions
+    my @w;
+    local $SIG{__WARN__} = sub { push @w, "@_" };
+    $repo = App::Git::StrongHash::Objects->new(cwd()); # code for this project has submods
+    $repo->add_tags->add_commits;
+    is(scalar @w, 0, "no warn before trees");
+    $repo->add_trees;
+    is(scalar @w, scalar @submod_versions, "warn per submod")
+      or note diag { w=> \@w };
+    my @w_want = map
+      {qr{^TO[D]O: Ignoring submodule '160000 commit $_ - test-data(?:-no-tags)?' at \S+/StrongHash/Objects\.pm line }}
+      @submod_versions;
+    for (my $i=0; $i<@w_want; $i++) {
+      like($w[$i], $w_want[$i], "w[$i] for $submod_versions[$i]");
+    }
   };
 
   return 0;

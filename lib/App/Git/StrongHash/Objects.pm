@@ -350,7 +350,7 @@ sub _mkiter {
     return App::Git::StrongHash::CatFilerator->new
       ($self, $hasher, $iter, $method);
   } else {
-    croak "Unknown mode iter_*(@arg)";
+    croak "Unknown modetype iter_*(@arg)";
   }
 }
 
