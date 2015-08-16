@@ -6,7 +6,7 @@ use Test::More;
 use Digest::SHA 'sha1_hex';
 
 use lib 't/lib';
-use Local::TestUtil qw( testrepo_or_skip bin2hex );
+use Local::TestUtil qw( testrepo_or_skip bin2hex cover_script );
 
 
 sub main {
@@ -19,13 +19,7 @@ sub main {
   $bin =~ s{/lib$}{/script}
     or die "Can't make blib/script from $bin";
 
-  if (defined (my $hps = $ENV{HARNESS_PERL_SWITCHES})) {
-    # e.g. " -MDevel::Cover=-db,/mumble/git-stronghash/cover_db"
-    my ($cover) = $hps =~ m{\s(-MDevel::Cover=\S+)(\s|$)}
-      or die "Got HARNESS_PERL_SWITCHES='$hps' with no coverage options";
-    die "PERL5OPT='$ENV{PERL5OPT}' already..?" if defined $ENV{PERL5OPT};
-    $ENV{PERL5OPT} = $cover;
-  }
+  cover_script();
 
   my $cmd = "cd $testrepo && $bin/git-stronghash-all -t sha1 -t sha256";
   my $digestfile = qx{$cmd};

@@ -9,7 +9,7 @@ use File::Slurp qw( write_file );
 use File::Temp 'tempfile';
 use base 'Exporter';
 
-our @EXPORT_OK = qw( ione plusNL tryerr mkiter detaint t_nxt_wantarray testrepo_or_skip hex2bin bin2hex fh_on );
+our @EXPORT_OK = qw( ione plusNL tryerr mkiter detaint t_nxt_wantarray testrepo_or_skip hex2bin bin2hex fh_on cover_script );
 
 
 sub tryerr(&) {
@@ -97,6 +97,17 @@ sub fh_on {
   print {$fh} $blob or die "print{$filename}: $!";
   sysseek $fh, 0, 0 or die "sysseek($filename): $!";
   return $fh;
+}
+
+sub cover_script {
+  if (defined (my $hps = delete $ENV{HARNESS_PERL_SWITCHES})) {
+    # e.g. " -MDevel::Cover=-db,/mumble/git-stronghash/cover_db"
+    my ($cover) = $hps =~ m{\s(-MDevel::Cover=\S+)(\s|$)}
+      or die "Got HARNESS_PERL_SWITCHES='$hps' with no coverage options";
+    die "PERL5OPT='$ENV{PERL5OPT}' already..?" if defined $ENV{PERL5OPT};
+    $ENV{PERL5OPT} = $cover;
+  }
+  return;
 }
 
 

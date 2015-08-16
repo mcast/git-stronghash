@@ -6,6 +6,9 @@ use File::Slurp qw( slurp read_dir );
 use Test::More;
 use Cwd 'abs_path';
 
+use lib 't/lib';
+use Local::TestUtil qw( cover_script );
+
 
 sub main {
   run_absolute();
@@ -72,6 +75,9 @@ sub run_absolute {
     # allows $PWD/blib/lib/* coverage stats to merge into blib/lib/*
     shift @ARGV if $ARGV[0] eq '--recursing';
   } else {
+#    cover_script();
+# Telling the re-exec to run Devel::Cover shows the rest of main(),
+# but then loses A:G:SH->all
     die "Fallen down the recursion well, while trying to run under absolute path?!"
       if "@ARGV" =~ /recursing/;
     exec($^X, $abs, "--recursing", @ARGV) unless $abs eq $0;
