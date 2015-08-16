@@ -8,6 +8,7 @@ use Cwd 'abs_path';
 
 
 sub main {
+  run_absolute();
   plan tests => 4;
 
   my @modfn = split /\n/, slurp("$0.txt");
@@ -63,5 +64,19 @@ sub main {
 
   return 0;
 }
+
+sub run_absolute {
+  my $abs = abs_path($0);
+  if ($abs eq $0) {
+    # $0 is absolute, which (via conditionals in Devel::Cover, I think)
+    # allows $PWD/blib/lib/* coverage stats to merge into blib/lib/*
+    shift @ARGV if $ARGV[0] eq '--recursing';
+  } else {
+    die "Fallen down the recursion well, while trying to run under absolute path?!"
+      if "@ARGV" =~ /recursing/;
+    exec($^X, $abs, "--recursing", @ARGV) unless $abs eq $0;
+  }
+}
+
 
 exit main();
