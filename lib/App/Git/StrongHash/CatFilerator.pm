@@ -45,7 +45,7 @@ sub new {
       cmd => \@cmd,
       caller => [ caller(0) ] };
   bless $self, $class;
-  return $self->_start;
+  return $self;
 }
 
 sub _ids_dump {
@@ -77,7 +77,7 @@ sub _cleanup {
   return;
 }
 
-sub _start {
+sub start {
   my ($self) = @_;
   my $objlist = $self->_ids_fn;
   confess "read objids_fn: too late" unless defined $objlist;

@@ -35,7 +35,7 @@ sub new {
       caller => [ caller(0) ] };
   bless $self, $class;
   $self->irs($/);
-  return $self->_start;
+  return $self;
 }
 
 # TODO: new_later : defer via a Laterator
@@ -59,7 +59,24 @@ sub _caller {
   return "$$c[1]:$$c[2]";
 }
 
-sub _start {
+=head2 started()
+
+Return true iff started, including when finished.
+
+=cut
+
+sub started {
+  my ($self) = @_;
+  return defined $self->{pid};
+}
+
+=head2 start()
+
+Run the process and open the pipe from it.  Returns self.
+
+=cut
+
+sub start {
   my ($self) = @_;
   my @cmd = @{ $self->{cmd} };
   my ($pid, $fh);
@@ -107,6 +124,7 @@ warnings.
 
 sub finish {
   my ($self) = @_;
+  croak "Not yet started" unless $self->started;
   my $fh = $self->{fh};
   $self->{fh} = undef;
   $self->fail("double finish") unless defined $fh;
@@ -125,7 +143,7 @@ sub finish {
 
 sub DESTROY {
   my ($self) = @_;
-  return unless exists $self->{fh}; # blessed but _start failed
+  return unless exists $self->{fh}; # blessed but start failed
   my @cmd = @{ $self->{cmd} };
   my $caller = $self->_caller;
   carp "[w] DESTROY before close on '@cmd' from $caller" if defined $self->{fh};
@@ -142,6 +160,7 @@ successful EOF.
 sub nxt {
   my ($self) = @_;
   croak "wantarray!" unless wantarray;
+  $self->start unless $self->started;
   my $fh = $self->{fh};
   $self->fail("not running") unless $fh;
   local $/ = $self->irs;

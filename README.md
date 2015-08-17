@@ -72,8 +72,6 @@ Based on my interpretation of this, informed by many articles (references now lo
 * [ ] Iterator for digestfile body --> are these commits present? --> if yes, are their trees and blobs?
 * [ ] Iterator for treeful of digestfiles
 * [ ] Support submodule (commit object in tree).  `TODO: Ignoring submodule \'160000 commit 34570e3bd4ef302f7eefc5097d4471cdcec108b9 - test-data\' at ...`
-* [ ] Defer subprocess start, else we get so many `[w] DESTROY before close on 'git ...` warnings upon failure that the error message is swamped.
-* [X] `git grep -E TO[D]O` comments from source to here
 * [ ] Teach App::Git::StrongHash::Objects to subtract already-hashed objects
 * [ ] Notice when A:G:SH:Objects discovers new objects which relate only to the previous signature, and defer
 * [ ] Stream digestfiles directly into some other ref namespace

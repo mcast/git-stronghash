@@ -89,6 +89,7 @@ sub tt_breakage {
   my $ids = App::Git::StrongHash::Listerator->new(qw( a10000 ee00ff ));
   $L1 = __LINE__; my $CF = App::Git::StrongHash::CatFilerator->new
     ($mockrepo, $H, $ids, 'output_hex');
+  $CF->start;
   my $tmp_fn = $CF->_ids_fn;
   is($CF->_ids_fn, $tmp_fn, "repeatable _ids_fn");
   like(tryerr { $CF->_ids_dump }, qr{^ERR:read objids: too late at }, "dump objids once only");
@@ -98,7 +99,7 @@ sub tt_breakage {
   like(tryerr { my @n = $CF->nxt; $n[0] },
        qr{^ERR:cat-file parse fail on 'foo\\ cat\\-file\\ \\-\\-batch' in 'echo },
        "already running / can't parse echo");
-  like(tryerr { $CF->_start }, # (again - it was called in new)
+  like(tryerr { $CF->start }, # again
        qr{^ERR:read objids_fn: too late at }, "can't restart");
   is(scalar @w, 0, "no warning yet");
   undef $CF; $L2 = __LINE__;
