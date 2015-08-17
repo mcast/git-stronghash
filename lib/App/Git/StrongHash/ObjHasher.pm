@@ -135,7 +135,7 @@ sub htypes {
 Read the header in a filehandle or binary string and return the
 translated list of (key, value) pairs.  May generate errors.
 
-Filehandles will be read B<using C<sysread>> from current position
+Filehandles will be read B<using C<read>> from current position
 (presumably start of file) and left ready to read the first hash row;
 or at an undefined position on error.
 
@@ -152,8 +152,8 @@ sub header_bin2txt {
   my ($buf, $fh, $add) = ('', 0, 16);
   if (ref($in)) {
     $fh = $in;
-    my $nread = sysread($fh, $buf, $add);
-    croak "Failed sysread'ing header magic: $!" unless defined $nread;
+    my $nread = read($fh, $buf, $add);
+    croak "Failed read'ing header magic: $!" unless defined $nread;
     croak "EOF before header magic (got $nread)" unless $nread >= $add;
   } else {
     $buf = $in;
@@ -171,9 +171,9 @@ sub header_bin2txt {
   if ($hdrlen > length($buf)) {
     if ($fh) {
       $add = $hdrlen - length($buf);
-      my $nread = sysread($fh, $buf, $add, length($buf));
+      my $nread = read($fh, $buf, $add, length($buf));
       # uncoverable branch true
-      croak "Failed sysread'ing header: $!" unless defined $nread;
+      croak "Failed read'ing header: $!" unless defined $nread;
       croak "EOF before end of header (got $nread)" unless length($buf) == $hdrlen;
     } else {
       return $hdrlen; # more!

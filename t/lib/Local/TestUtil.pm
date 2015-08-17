@@ -85,17 +85,20 @@ sub bin2hex {
 }
 
 sub fh_on {
-  my ($name, $blob) = @_;
-  # (open $fh, '<', \$data) are incompatible with sysread.
+  my ($name, $blob, $layer) = @_;
+  $layer = '' unless defined $layer;
+  # (open $fh, '<', \$data) are incompatible with sysread (but I
+  # stopped using).
+  #
   # IO::String was incompatible with (local $/ = \16).
   # (open \$data) was giving me utf8 decoding issues.
   #
   # There may be a better way round all this, but the test should
-  # pass anyway.  Beware, we mix print+sysread here!
+  # pass anyway.
   my ($fh, $filename) = tempfile("07objhasher.$name.XXXXXX", TMPDIR => 1);
-  $fh->autoflush(1);
   print {$fh} $blob or die "print{$filename}: $!";
-  sysseek $fh, 0, 0 or die "sysseek($filename): $!";
+  close $fh or die "close{$filename}: $!";
+  open $fh, "<$layer", $filename or die "re-open(<$layer $filename): $!";
   return $fh;
 }
 

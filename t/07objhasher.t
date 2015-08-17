@@ -178,12 +178,12 @@ sub main {
     %out = $OH->header_bin2txt($fh);
     is_deeply(\%out, $T->{out}, "recovered header (fh)");
     my $buf;
-    sysread($fh, $buf, 10) or die "sysread 10: $!";
+    read($fh, $buf, 10) or die "read 10: $!";
     is($buf, "WHATSNEXT\n", "fh ready at first row");
 
     like(tryerr { local $SIG{__WARN__} = sub {}; $OH->header_bin2txt(\*JUNK); my $no_warn = \*JUNK },
-	 qr{^ERR:Failed sysread'ing header magic: Bad file descriptor at \Q$0 line},
-	 "sysread JUNK GLOB");
+	 qr{^ERR:Failed read'ing header magic: Bad file descriptor at \Q$0 line},
+	 "read JUNK GLOB");
     is_deeply($OH->new(%out),
 	      $OH->new(%in, nblob => undef, blobbytes => undef),
 	      "header_bin2txt is new'able");
