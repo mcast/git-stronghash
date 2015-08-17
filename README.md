@@ -69,7 +69,9 @@ Based on my interpretation of this, informed by many articles (references now lo
 # Local vapourware queue
 
 * [ ] The licence!  Either GPLv3 (my prejudice) or same-terms-as-Git, undecided.
-* [ ] Support submodule (commit object in tree).  `Can't read lstree(mode,type,objid,size,name): q{160000 commit 34570e3bd4ef302f7eefc5097d4471cdcec108b9       -  test-data} !~ qr{(?^:^\s*([0-7]{6}) (tree|blob) ([0-9a-f]+)\s+(-|\d+)\t(.+)\x00)} at INST/lib/perl5/App/Git/StrongHash/Objects.pm line 228.`
+* [ ] Iterator for digestfile body --> are these commits present? --> if yes, are their trees and blobs?
+* [ ] Iterator for treeful of digestfiles
+* [ ] Support submodule (commit object in tree).  `TODO: Ignoring submodule \'160000 commit 34570e3bd4ef302f7eefc5097d4471cdcec108b9 - test-data\' at ...`
 * [ ] Defer subprocess start, else we get so many `[w] DESTROY before close on 'git ...` warnings upon failure that the error message is swamped.
 * [X] `git grep -E TO[D]O` comments from source to here
 * [ ] Teach App::Git::StrongHash::Objects to subtract already-hashed objects
@@ -86,7 +88,6 @@ lib/App/Git/StrongHash/ObjHasher.pm:245:     comment => 'n/c', # TODO: add API f
 lib/App/Git/StrongHash/Objects.pm:99:TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
 lib/App/Git/StrongHash/Objects.pm:101:TODO: should find topdir, and check it's actually a git_dir
 lib/App/Git/StrongHash/Objects.pm:126:# TODO: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
-lib/App/Git/StrongHash/Objects.pm:158:    # TODO:UNTESTED If there are no tags, "git show-ref --tags" returns 1 with no text.  We need some output, just ignore it.
 lib/App/Git/StrongHash/Objects.pm:183:    # TODO:OPT not sure we need all this data now, but it's in the commitblob anyway
 lib/App/Git/StrongHash/Objects.pm:205:TODO:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
 lib/App/Git/StrongHash/Objects.pm:216:  my %treeci_ignored; # TODO: delete later
@@ -100,7 +101,7 @@ lib/App/Git/StrongHash/Piperator.pm:41:# TODO: new_later : defer via a Laterator
 lib/App/Git/StrongHash/Piperator.pm:42:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
 t/08catfile.t:44:      local $TODO = 'early _cleanup would be nice';
 t/08catfile.t:67:    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
-t/08catfile.t:73:  local $TODO = 'L8R';
+t/08catfile.t:74:  local $TODO = 'L8R';
 ```
 
 # Contributing
