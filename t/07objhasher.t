@@ -175,16 +175,24 @@ sub main {
     note bin2hex($hdr);
     is_deeply(\%out, $T->{out}, "recovered header (bin)");
 
-    my $fh = fh_on(valid => $hdr."WHATSNEXT\nETC\n");
+    my $fh = fh_on(valid => $hdr."WHATSNEXT\nETC\n", ':raw');
     %out = $OH->header_bin2txt($fh);
     is_deeply(\%out, $T->{out}, "recovered header (fh)");
     my $buf;
     read($fh, $buf, 10) or die "read 10: $!";
     is($buf, "WHATSNEXT\n", "fh ready at first row");
 
-    like(tryerr { local $SIG{__WARN__} = sub {}; $OH->header_bin2txt(\*JUNK); my $no_warn = \*JUNK },
+    my $closed = fh_on(closed => 'junk');
+    close $closed;
+    my $junked = tryerr {
+      local $SIG{__WARN__} = sub {};
+      local $App::Git::StrongHash::ObjHasher::LAX_BINMODE = 1;
+      $OH->header_bin2txt($closed);
+    };
+    like($junked,
 	 qr{^ERR:Failed read'ing header magic: Bad file descriptor at \Q$0 line},
 	 "read JUNK GLOB");
+
     is_deeply($OH->new(%out),
 	      $OH->new(%in, nblob => undef, blobbytes => undef),
 	      "header_bin2txt is new'able");
@@ -216,15 +224,19 @@ sub main {
       $hdr .= "\x00"; # allow run-on instead of EOF
       note bin2hex($hdr);
       foreach my $layer ('', qw( :utf8 :raw :crlf )) {
+	my $name = sprintf("%d == 0x%04X: recovered header (layer '%s')", $short, $short, $layer);
 	my %out = try {
 	  $OH->header_bin2txt(fh_on("$short$layer" => $hdr, $layer));
 	} catch {
 	  (err => $_);
 	};
 	delete @out{qw{ comment filev hdrlen magic progv rowlen }};
-	is_deeply(\%out, \%in,
-		  sprintf("%d == 0x%04X: recovered header (layer '%s')", $short, $short, $layer))
-	  or note explain { in => \%in, out => \%out };
+	if ($out{err} && $out{err} =~ m{ should be in binmode }) {
+	  ok(1, "$name >rejected<");
+	} else {
+	  is_deeply(\%out, \%in, $name)
+	    or note explain { in => \%in, out => \%out };
+	}
       }
     }
   };

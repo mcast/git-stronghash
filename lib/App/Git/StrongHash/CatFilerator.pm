@@ -87,6 +87,7 @@ sub start {
     $self->fail("fork failed: $!");
   } elsif ($pid) {
     # parent
+    binmode $fh;
     @{$self}{qw{ pid fh }} = ($pid, $fh);
     return $self;
   } else {

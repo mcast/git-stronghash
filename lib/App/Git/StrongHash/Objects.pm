@@ -391,6 +391,7 @@ opens and closes the file.
 
 sub mkdigesfile {
   my ($self, $fh, $hasher) = @_;
+  App::Git::StrongHash::ObjHasher->wantbinmode($fh);
   my $stream = App::Git::StrongHash::Penderator->new
     ($self->iter_ci(bin => $hasher),
      $self->iter_tag(bin => $hasher),

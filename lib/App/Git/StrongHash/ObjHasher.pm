@@ -152,6 +152,7 @@ sub header_bin2txt {
   my ($buf, $fh, $add) = ('', 0, 16);
   if (ref($in)) {
     $fh = $in;
+    $class->wantbinmode($fh);
     my $nread = read($fh, $buf, $add);
     croak "Failed read'ing header magic: $!" unless defined $nread;
     croak "EOF before header magic (want $add, got $nread)" unless $nread >= $add;
@@ -189,6 +190,25 @@ sub header_bin2txt {
 #  main::diag main::bin2hex($buf);
 
   return %out;
+}
+
+
+=head2 wantbinmode($fh)
+
+Insist that the filehandle is in C<binmode>.  Returns $fh if it is.
+
+=cut
+
+our $LAX_BINMODE = 0; # for testing
+sub wantbinmode {
+  my ($called, $fh) = @_;
+  return $fh if $LAX_BINMODE;
+  my @layers = PerlIO::get_layers($fh);
+  my $layers = join '+', @layers;
+  $layers = '(closed?)' if $layers eq '';
+  confess "Filehandle $fh should be in binmode but is $layers"
+    unless grep { $layers eq $_ } qw{ unix unix+perlio };
+  return $fh;
 }
 
 
