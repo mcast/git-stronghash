@@ -194,9 +194,9 @@ sub main {
     is_deeply([ $OH->header_bin2txt("HARDLY_A_BITE") ], [ 16 ], "demand magicful of binstring");
     is_deeply([ $OH->header_bin2txt($hdr_longwant) ], [ 1024 ], "demand the whole binstring");
     like(tryerr { $OH->header_bin2txt(fh_on(nomagic => "HARDLY_A_BITE")) },
-	 qr{^ERR:EOF before header magic \Q(got 13) at $0 line }, "EOF on header magic");
+	 qr{^ERR:EOF before header magic \Q(want 16, got 13) at $0 line }, "EOF on header magic");
     like(tryerr { $OH->header_bin2txt(fh_on(shorthead => $hdr_longwant)) },
-	 qr{^ERR:EOF before end of header \Q(got 2) at $0 line }, "EOF on header");
+	 qr{^ERR:EOF before end of header \Q(want 1008 more, got 2) at $0 line }, "EOF on header");
 
     like(tryerr { $OH->header_bin2txt("THE_WRONG_BITES_ARE_USELESS") },
 	 qr{^ERR:Bad file magic.* at \Q$0 line}, "bad magic");

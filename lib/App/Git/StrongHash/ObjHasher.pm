@@ -140,8 +140,8 @@ Filehandles will be read B<using C<read>> from current position
 or at an undefined position on error.
 
 If the binary string is not long enough, return just the required
-number of bytes (one element).  64k is definitely plenty.  This part
-of the interface looks ugly and might change.
+total number of bytes (one element).  64k is definitely plenty.  This
+part of the interface looks ugly and might change.
 
 =cut
 
@@ -154,7 +154,7 @@ sub header_bin2txt {
     $fh = $in;
     my $nread = read($fh, $buf, $add);
     croak "Failed read'ing header magic: $!" unless defined $nread;
-    croak "EOF before header magic (got $nread)" unless $nread >= $add;
+    croak "EOF before header magic (want $add, got $nread)" unless $nread >= $add;
   } else {
     $buf = $in;
   }
@@ -174,7 +174,7 @@ sub header_bin2txt {
       my $nread = read($fh, $buf, $add, length($buf));
       # uncoverable branch true
       croak "Failed read'ing header: $!" unless defined $nread;
-      croak "EOF before end of header (got $nread)" unless length($buf) == $hdrlen;
+      croak "EOF before end of header (want $add more, got $nread)" unless length($buf) == $hdrlen;
     } else {
       return $hdrlen; # more!
     }
