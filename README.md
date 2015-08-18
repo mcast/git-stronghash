@@ -85,16 +85,18 @@ git grep -nE 'TO[D]O' | perl -i -e 'undef $/; $todo=<STDIN>; $todo =~ s{^README.
 lib/App/Git/StrongHash/ObjHasher.pm:245:     comment => 'n/c', # TODO: add API for optional comment
 lib/App/Git/StrongHash/Objects.pm:99:TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
 lib/App/Git/StrongHash/Objects.pm:101:TODO: should find topdir, and check it's actually a git_dir
-lib/App/Git/StrongHash/Objects.pm:126:# TODO: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
-lib/App/Git/StrongHash/Objects.pm:183:    # TODO:OPT not sure we need all this data now, but it's in the commitblob anyway
-lib/App/Git/StrongHash/Objects.pm:205:TODO:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
-lib/App/Git/StrongHash/Objects.pm:216:  my %treeci_ignored; # TODO: delete later
-lib/App/Git/StrongHash/Objects.pm:238:        warn "TODO: Ignoring submodule '$mode $type $objid $size $name'"
-lib/App/Git/StrongHash/Objects.pm:257:# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
-lib/App/Git/StrongHash/Objects.pm:258:# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
-lib/App/Git/StrongHash/Objects.pm:259:# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
-lib/App/Git/StrongHash/Objects.pm:273:  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
-lib/App/Git/StrongHash/Objects.pm:349:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
+lib/App/Git/StrongHash/Objects.pm:103:TODO: consider git rev-list instead, sure to be faster, probably better control of commit boundaries
+lib/App/Git/StrongHash/Objects.pm:104:TODO: speed test on a known-size repo; (current dbix-class, sha256) ==[ 28m on MBP(2.5GHz Core i5) ]=> 2913KiB digestfile
+lib/App/Git/StrongHash/Objects.pm:129:# TODO: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
+lib/App/Git/StrongHash/Objects.pm:186:    # TODO:OPT not sure we need all this data now, but it's in the commitblob anyway
+lib/App/Git/StrongHash/Objects.pm:208:TODO:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
+lib/App/Git/StrongHash/Objects.pm:219:  my %treeci_ignored; # TODO: delete later
+lib/App/Git/StrongHash/Objects.pm:241:        warn "TODO: Ignoring submodule '$mode $type $objid $size $name'\n"
+lib/App/Git/StrongHash/Objects.pm:260:# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
+lib/App/Git/StrongHash/Objects.pm:261:# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
+lib/App/Git/StrongHash/Objects.pm:262:# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
+lib/App/Git/StrongHash/Objects.pm:276:  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
+lib/App/Git/StrongHash/Objects.pm:352:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
 lib/App/Git/StrongHash/Piperator.pm:41:# TODO: new_later : defer via a Laterator
 lib/App/Git/StrongHash/Piperator.pm:42:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
 t/08catfile.t:44:      local $TODO = 'early _cleanup would be nice';

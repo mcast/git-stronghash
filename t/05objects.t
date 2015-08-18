@@ -150,8 +150,9 @@ sub main {
     $repo->add_trees;
     is(scalar @w, scalar @submod_versions, "warn per submod")
       or note diag { w=> \@w };
+    @w = sort @w;
     my @w_want = map
-      {qr{^TO[D]O: Ignoring submodule '160000 commit $_ - test-data(?:-no-tags)?' at \S+/StrongHash/Objects\.pm line }}
+      {qr{^TO[D]O: Ignoring submodule '160000 commit $_ - test-data(?:-no-tags)?'$}}
       @submod_versions;
     for (my $i=0; $i<@w_want; $i++) {
       like($w[$i], $w_want[$i], "w[$i] for $submod_versions[$i]");

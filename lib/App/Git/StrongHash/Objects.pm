@@ -100,6 +100,9 @@ TODO: Currently we assume this is a full clone with a work-tree, but this probab
 
 TODO: should find topdir, and check it's actually a git_dir
 
+TODO: consider git rev-list instead, sure to be faster, probably better control of commit boundaries
+TODO: speed test on a known-size repo; (current dbix-class, sha256) ==[ 28m on MBP(2.5GHz Core i5) ]=> 2913KiB digestfile
+
 =cut
 
 sub new {
@@ -235,7 +238,7 @@ sub add_trees {
 	push @treeq, $objid;
 
       } elsif ($type eq 'commit') {
-        warn "TODO: Ignoring submodule '$mode $type $objid $size $name'"
+        warn "TODO: Ignoring submodule '$mode $type $objid $size $name'\n"
           unless $treeci_ignored{"$objid:$name"}++;;
 
       } else {
