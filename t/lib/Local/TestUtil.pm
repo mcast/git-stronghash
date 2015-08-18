@@ -96,6 +96,7 @@ sub fh_on {
   # There may be a better way round all this, but the test should
   # pass anyway.
   my ($fh, $filename) = tempfile("07objhasher.$name.XXXXXX", TMPDIR => 1);
+  binmode $fh;
   print {$fh} $blob or die "print{$filename}: $!";
   close $fh or die "close{$filename}: $!";
   open $fh, "<$layer", $filename or die "re-open(<$layer $filename): $!";

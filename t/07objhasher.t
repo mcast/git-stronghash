@@ -4,6 +4,7 @@ use warnings FATAL => 'all';
 
 use List::Util qw( sum );
 use File::Slurp qw( slurp );
+use Try::Tiny;
 use YAML qw( LoadFile Dump Load );
 use Test::More;
 
@@ -20,7 +21,7 @@ sub main {
   my $JUNK_CIID = '0123456789abcdef0123456789abcdef01234567';
   my ($DATA) = LoadFile("$0.yaml");
 
-  plan tests => 13;
+  plan tests => 14;
 
   foreach my $path (qw( to_header/text to_header/h2_text from_header/out )) {
     my @p = split m{/}, $path;
@@ -204,6 +205,28 @@ sub main {
     my $VSN = App::Git::StrongHash->VERSION;
     like(tryerr { $OH->header_bin2txt("$out{magic}ABCD") },
 	 qr{^ERR:Bad file version $AB, only 1 known by code v$VSN at \Q$0 line}, "bad filev");
+  };
+
+  subtest layer_check => sub {
+    my $T = $DATA->{layer_check};
+    my %in = (htype => [qw[ sha256 sha1 ]], nci => 1);
+    foreach my $short (0x0A0D, 0x0D0A, 0xC2A3, 0xA3C2, 0x7FFF, 0xFF7F, 0x8000, 0x0080) {
+      $in{nobj} = $short;
+      my $hdr = $OH->new(%in)->header_bin;
+      $hdr .= "\x00"; # allow run-on instead of EOF
+      note bin2hex($hdr);
+      foreach my $layer ('', qw( :utf8 :raw :crlf )) {
+	my %out = try {
+	  $OH->header_bin2txt(fh_on("$short$layer" => $hdr, $layer));
+	} catch {
+	  (err => $_);
+	};
+	delete @out{qw{ comment filev hdrlen magic progv rowlen }};
+	is_deeply(\%out, \%in,
+		  sprintf("%d == 0x%04X: recovered header (layer '%s')", $short, $short, $layer))
+	  or note explain { in => \%in, out => \%out };
+      }
+    }
   };
 
   return 0;

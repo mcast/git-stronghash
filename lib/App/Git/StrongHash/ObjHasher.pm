@@ -69,7 +69,7 @@ sub new {
 }
 
 sub _minimal { # suitable for new
-  (htype => ['sha256'], nci => 0, nobj => 1, nblob => 1, blobbytes => 1);
+  (htype => ['sha256'], nci => 0, nobj => 1);
 }
 
 sub _init {
