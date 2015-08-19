@@ -1,6 +1,6 @@
 ---
 add_tags: !!perl/hash:App::Git::StrongHash::Objects
-  dir: test-data
+  dir: t/testrepo/test-data
   tag:
     refs/tags/fif: 4ef2c9401ce4066a75dbe3e83eea2eace5920c37
     # fif: ciid
@@ -16,7 +16,7 @@ add_commits: !!perl/hash:App::Git::StrongHash::Objects
     d537baf133bf25d04c0b0711341f59f04119b5e7: 4b825dc642cb6eb9a060e54bf8d69288fbee4904
     f40b4bd2fd4373df3c7b4455c36786011a717460: f6656e1d2866d951c969141fa7afe848d9ed4a79
     f81423b69ec303d11489e1c34a99d58f3c93846a: ae5349e79d17a1d80b07e621441d06fe4907707a
-  dir: test-data
+  dir: t/testrepo/test-data
   tag: {}
 add_trees: !!perl/hash:App::Git::StrongHash::Objects
   blob:
@@ -35,7 +35,7 @@ add_trees: !!perl/hash:App::Git::StrongHash::Objects
     d537baf133bf25d04c0b0711341f59f04119b5e7: 4b825dc642cb6eb9a060e54bf8d69288fbee4904
     f40b4bd2fd4373df3c7b4455c36786011a717460: f6656e1d2866d951c969141fa7afe848d9ed4a79
     f81423b69ec303d11489e1c34a99d58f3c93846a: ae5349e79d17a1d80b07e621441d06fe4907707a
-  dir: test-data
+  dir: t/testrepo/test-data
   tag:
     refs/tags/fif: 4ef2c9401ce4066a75dbe3e83eea2eace5920c37
     refs/tags/goldfish: d9101db5d2c6d87f92605709f2e923cd269affec

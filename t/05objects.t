@@ -35,7 +35,7 @@ sub main {
 
   $RST->();
   is((join '  ', $repo->_git),
-     "git  --work-tree  test-data  --git-dir  test-data/.git",
+     "git  --work-tree  t/testrepo/test-data  --git-dir  t/testrepo/test-data/.git",
      "git commandline prefix");
 
   $RST->();
@@ -141,21 +141,25 @@ sub main {
           34570e3bd4ef302f7eefc5097d4471cdcec108b9
           5d88f523fa75b55dc9b6c71bf1ee2fba8a32c0a5
           b105de8d622dab99968653e591d717bc9d753eaf
-       ); # two submods, one has two versions
+       );
+    my $smv_re = join '|', @submod_versions;
+    $smv_re = qr{$smv_re};
     my @w;
     local $SIG{__WARN__} = sub { push @w, "@_" };
     $repo = App::Git::StrongHash::Objects->new(cwd()); # code for this project has submods
     $repo->add_tags->add_commits;
     is(scalar @w, 0, "no warn before trees");
     $repo->add_trees;
-    is(scalar @w, scalar @submod_versions, "warn per submod")
-      or note diag { w=> \@w };
-    @w = sort @w;
-    my @w_want = map
-      {qr{^TO[D]O: Ignoring submodule '160000 commit $_ - test-data(?:-no-tags)?'$}}
-      @submod_versions;
-    for (my $i=0; $i<@w_want; $i++) {
-      like($w[$i], $w_want[$i], "w[$i] for $submod_versions[$i]");
+    is(scalar @w,
+       1 # test-data
+       + 2 # new test-data, test-data-no-tags
+       + 2 # moved to t/testrepo/
+       , "warn count")
+      or note explain { w=> \@w };
+    foreach my $w (@w) {
+      like($w,
+	   qr{^TO[D]O: Ignoring submodule '160000 commit $smv_re - (t/testrepo/)?test-data(?:-no-tags)?'$},
+	   "submodule warn");
     }
   };
 

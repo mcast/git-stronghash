@@ -50,10 +50,10 @@ sub testrepo_or_skip {
   my $testrepo = $0;
   my $name = 'test-data';
   $name .= $suffix if defined $suffix;
-  $testrepo =~ s{t/\S+\.t$}{$name}
+  $testrepo =~ s{t/\S+\.t$}{t/testrepo/$name}
     or die "Can't make $name/ on $testrepo";
   unless (-d $testrepo && -f "$testrepo/.git/config") {
-    main::note " => # git clone $testrepo.bundle # will make it";
+    main::note " => # (cd t/testrepo && git clone $testrepo.bundle) # will make it";
     main::plan skip_all => "$name/ not expanded from bundle?";
   }
   return $testrepo;
