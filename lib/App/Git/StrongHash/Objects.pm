@@ -233,9 +233,8 @@ sub add_trees {
       my ($mode, $type, $objid, $size, $name) = @$nxt;
       # type: tree | blob, via regex
       if ($type eq 'tree') {
-	next if exists $trees->{$objid};
-	next if exists $scanned{$objid}; # uncoverable branch true (too tricky to arrange, and only a shortcut)
-	push @treeq, $objid;
+	# no need to scan, existing "git ls-tree -r" is already
+	$scanned{$objid} = undef;
 
       } elsif ($type eq 'commit') {
         warn "TODO: Ignoring submodule '$mode $type $objid $size $name'\n"
