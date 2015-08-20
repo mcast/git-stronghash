@@ -14,7 +14,9 @@ sub main {
   my $testrepo = testrepo_or_skip();
 
   plan tests => 1;
-  local $TODO = 'what next?'; fail('hmmm');
+
+  like(tryerr { App::Git::StrongHash::DigestReader->new(testdata => 'filename') },
+       qr{^ERR:Filehandle filename should be in binmode}, 'wantbinmode');
 
   return 0;
 }
