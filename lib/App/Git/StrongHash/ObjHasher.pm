@@ -205,7 +205,10 @@ sub wantbinmode {
   return $fh if $LAX_BINMODE;
   my @layers = PerlIO::get_layers($fh);
   my $layers = join '+', @layers;
-  $layers = '(closed?)' if $layers eq '';
+  if (!@layers) {
+    $layers = '(closed?)';
+    $layers = 'scalar!' unless ref($fh);
+  }
   confess "Filehandle $fh should be in binmode but is $layers"
     unless grep { $layers eq $_ } qw{ unix unix+perlio };
   return $fh;

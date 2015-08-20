@@ -87,7 +87,7 @@ sub start {
     $self->fail("fork failed: $!");
   } elsif ($pid) {
     # parent
-    binmode $fh;
+    binmode $fh or croak "binmode pipe from fork: $!";
     @{$self}{qw{ pid fh }} = ($pid, $fh);
     return $self;
   } else {
