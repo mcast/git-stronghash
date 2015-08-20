@@ -76,7 +76,7 @@ In list context, take C<$list[0]>.
 
 Returns the fetched element, or nothing at the end.
 
-Currently the element is an ARRAYref like C<[$objectid, @hash]> where
+Currently the element is an ARRAYref like C<[$gitsha1, @hash]> where
 the hash types are as given in the header and the format is full
 length hexadecimal.  Configuration for this can come later.
 

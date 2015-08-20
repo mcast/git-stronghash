@@ -39,13 +39,13 @@ sub main {
     my $tmp_fn = $CF->_ids_fn; # may go Away, but for now me must see cleanup
     ok(-f $tmp_fn, "tmpfile exists ($tmp_fn)");
     my ($got) = $CF->nxt;
-    is($got, "objid:25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb SHA-256:e3c00fad34dcefaec0e34cdd96ee51ab405e3ded97277f294a17a5153d36bffe\n", 'tree0');
+    is($got, "gitsha1:25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb SHA-256:e3c00fad34dcefaec0e34cdd96ee51ab405e3ded97277f294a17a5153d36bffe\n", 'tree0');
     {
       local $TODO = 'early _cleanup would be nice';
       ok(!-f $tmp_fn, "tmpfile gone (early)");
     }
     ($got) = $CF->nxt;
-    is($got, "objid:32823f581286f5dcff5ee3bce389e13eb7def3a8 SHA-256:cbd501dc604a1225934b26e4e5378fc670dd978e67c05f619f5717f502095ccf\n", 'tree1');
+    is($got, "gitsha1:32823f581286f5dcff5ee3bce389e13eb7def3a8 SHA-256:cbd501dc604a1225934b26e4e5378fc670dd978e67c05f619f5717f502095ccf\n", 'tree1');
 
     $CF->{chunk} = 50;
     $H = $CF->{hasher} = Test::MockObject->new;
@@ -92,7 +92,7 @@ sub tt_breakage {
   $CF->start;
   my $tmp_fn = $CF->_ids_fn;
   is($CF->_ids_fn, $tmp_fn, "repeatable _ids_fn");
-  like(tryerr { $CF->_ids_dump }, qr{^ERR:read objids: too late at }, "dump objids once only");
+  like(tryerr { $CF->_ids_dump }, qr{^ERR:read gitsha1s: too late at }, "dump gitsha1s once only");
   $CF->_cleanup;
   $CF->_cleanup; # should not error
   is($CF->_ids_fn, undef, "_ids_fn cleared");
@@ -100,7 +100,7 @@ sub tt_breakage {
        qr{^ERR:cat-file parse fail on 'foo\\ cat\\-file\\ \\-\\-batch' in 'echo },
        "already running / can't parse echo");
   like(tryerr { $CF->start }, # again
-       qr{^ERR:read objids_fn: too late at }, "can't restart");
+       qr{^ERR:read gitsha1s_fn: too late at }, "can't restart");
   is(scalar @w, 0, "no warning yet");
   undef $CF; $L2 = __LINE__;
   is(scalar @w, 1, "one warning") or note explain { w => \@w };
@@ -123,11 +123,11 @@ sub tt_missing {
   my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $ids, 'output_hex');
   my @n = $CF->nxt;
   is($n[0],
-     "objid:96cc558853a03c5d901661af837fceb7a81f58f6 SHA-256:02d36ee22aefffbb3eac4f90f703dd0be636851031144132b43af85384a2afcd\n",
+     "gitsha1:96cc558853a03c5d901661af837fceb7a81f58f6 SHA-256:02d36ee22aefffbb3eac4f90f703dd0be636851031144132b43af85384a2afcd\n",
      'sha256(seq 1 50)');
   is(scalar @w, 1, "one warning") or note explain { w => \@w };
   is(shift @w,
-     "Expected objectid 123456789abcdef0123456789abcdef012345678, it is missing\n",
+     "Expected gitsha1 123456789abcdef0123456789abcdef012345678, it is missing\n",
      "tell of missing");
   return;
 }
@@ -155,7 +155,7 @@ sub tt_testrepo {
   $df_sha = $df_sha->hexdigest;
   is($df_sha,
      'f50a640c06e2cb34aaf8fa99b57e7a2c1bdce664', # GuruChecksChanges; or at least wonders whether change is expected
-     # f50a...e664: I checked first+last few bytes of (objid,sha1,sha256) for first and last objects, they looked perfectly feasible
+     # f50a...e664: I checked first+last few bytes of (gitsha1,sha1,sha256) for first and last objects, they looked perfectly feasible
      'sha1(digestfile)')
     or diag bin2hex($df);
 

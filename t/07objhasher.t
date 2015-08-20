@@ -41,7 +41,7 @@ sub main {
   cmp_ok(length($H->output_bin), '==', $H->rowlen, "length(output_bin) == rowlen");
   note $H->rowlen, " byte";
 
-  foreach my $method (qw( output_hex output_bin objid_hex objid_bin )) {
+  foreach my $method (qw( output_hex output_bin gitsha1_hex gitsha1_bin )) {
     my $L = __LINE__; my $got = tryerr { $H->$method };
     like($got, qr{^ERR:No current object at \Q$0\E line $L\.}, "$method before newfile");
   }
@@ -60,7 +60,7 @@ sub main {
     is($bin, hex2bin($want->{bin}), "01hundred_sums bin")
       or diag bin2hex($bin);
 
-    $H->{objid} = $JUNK_CIID; # to prevent croak 'No current object'
+    $H->{gitsha1} = $JUNK_CIID; # to prevent croak 'No current object'
     # nb. hasher state otherwise unchanged
     my $lost_row = $H->output_hex;
     is($lost_row, $want->{lost_txt}, "hasher state is lost, output is digest(0 bytes)");
@@ -126,9 +126,9 @@ sub main {
     my $H = $OH->new(%OK);
     my $T = $DATA->{ciid};
     $H->newfile(blob => 123, $T->{hex});
-    is($H->objid_hex, $T->{hex}, "objid_hex");
-    is($H->objid_bin, hex2bin($T->{bin}), "objid_bin")
-      or diag bin2hex($H->objid_bin);
+    is($H->gitsha1_hex, $T->{hex}, "gitsha1_hex");
+    is($H->gitsha1_bin, hex2bin($T->{bin}), "gitsha1_bin")
+      or diag bin2hex($H->gitsha1_bin);
   };
 
   subtest to_header => sub {

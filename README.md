@@ -38,7 +38,7 @@ Based on my interpretation of this, informed by many articles (references now lo
 
 1. SHA-1 objectids work just fine for identifying objects in a repository where nobody is maliciously inserting data.  So leave them alone.
 2. Choose stronger hash(es) to suit - any time you like.  Accept the price of calculating and storing new hashes for everything, and we are untied from SHA-1's security problems.
-    * We now have an objectid hash and a security hash.  They are different values, used for different purposes.
+    * We now have an objectid (gitsha1) hash and a security hash.  They are different values, used for different purposes.
     * The security hashes, plus any signature upon them, need to be stored somewhere.  Git is an object storage system, so we'll use that.
 3. Hash everything in the repository and sign the resulting digest.  Maintain this efficiently.
     * Hashes in the digestfile must be full-length for full security, and in binary for efficiency.
@@ -62,6 +62,7 @@ Based on my interpretation of this, informed by many articles (references now lo
 ## Open Questions
 
 * Should the file format be more generic?  Rename the project?
+    * I renamed all "objid" or "objectid" to "gitsha1" to make this easier.
     * I can think of other collections of files I might want to sign incrementally.
     * Maybe I should just put those files in a git / git-annex repository.
     * Other VC systems might want the same solution to this problem.  They would need their own objectid collection and digestfile stashing, but otherwise code can be shared.
@@ -70,6 +71,7 @@ Based on my interpretation of this, informed by many articles (references now lo
 
 * [ ] The licence!  Either GPLv3 (my prejudice) or same-terms-as-Git, undecided.
 * [ ] Iterator for digestfile body --> are these commits present? --> if yes, are their trees and blobs?
+* [ ] htypes list written to digestfile header should contain 'gitsha1' for clarity
 * [ ] Iterator for treeful of digestfiles
 * [ ] Support submodule (commit object in tree).  `TODO: Ignoring submodule \'160000 commit 34570e3bd4ef302f7eefc5097d4471cdcec108b9 - test-data\' at ...`
 * [ ] Teach App::Git::StrongHash::Objects to subtract already-hashed objects
@@ -82,7 +84,7 @@ git grep -nE 'TO[D]O' | perl -i -e 'undef $/; $todo=<STDIN>; $todo =~ s{^README.
 ```
 ## in-source
 ```
-lib/App/Git/StrongHash/ObjHasher.pm:245:     comment => 'n/c', # TODO: add API for optional comment
+lib/App/Git/StrongHash/ObjHasher.pm:283:     comment => 'n/c', # TODO: add API for optional comment
 lib/App/Git/StrongHash/Objects.pm:99:TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
 lib/App/Git/StrongHash/Objects.pm:101:TODO: should find topdir, and check it's actually a git_dir
 lib/App/Git/StrongHash/Objects.pm:103:TODO: consider git rev-list instead, sure to be faster, probably better control of commit boundaries
@@ -91,17 +93,18 @@ lib/App/Git/StrongHash/Objects.pm:129:# TODO: feeding @arg via a splicing pushab
 lib/App/Git/StrongHash/Objects.pm:186:    # TODO:OPT not sure we need all this data now, but it's in the commitblob anyway
 lib/App/Git/StrongHash/Objects.pm:208:TODO:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
 lib/App/Git/StrongHash/Objects.pm:219:  my %treeci_ignored; # TODO: delete later
-lib/App/Git/StrongHash/Objects.pm:241:        warn "TODO: Ignoring submodule '$mode $type $objid $size $name'\n"
-lib/App/Git/StrongHash/Objects.pm:260:# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
-lib/App/Git/StrongHash/Objects.pm:261:# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
-lib/App/Git/StrongHash/Objects.pm:262:# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
-lib/App/Git/StrongHash/Objects.pm:276:  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
-lib/App/Git/StrongHash/Objects.pm:352:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
+lib/App/Git/StrongHash/Objects.pm:240:        warn "TODO: Ignoring submodule '$mode $type $gitsha1 $size $name'\n"
+lib/App/Git/StrongHash/Objects.pm:259:# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
+lib/App/Git/StrongHash/Objects.pm:260:# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
+lib/App/Git/StrongHash/Objects.pm:261:# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
+lib/App/Git/StrongHash/Objects.pm:275:  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
+lib/App/Git/StrongHash/Objects.pm:351:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
 lib/App/Git/StrongHash/Piperator.pm:41:# TODO: new_later : defer via a Laterator
 lib/App/Git/StrongHash/Piperator.pm:42:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
 t/08catfile.t:44:      local $TODO = 'early _cleanup would be nice';
 t/08catfile.t:67:    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
 t/08catfile.t:74:  local $TODO = 'L8R';
+t/09reader.t:17:  local $TODO = 'what next?'; fail('hmmm');
 ```
 
 # Contributing

@@ -23,7 +23,7 @@ L<App::Git::StrongHash::ObjHasher>.
 
 =head1 CLASS METHOD
 
-=head2 new($repo, $hasher, $objid_iterator)
+=head2 new($repo, $hasher, $gitsha1_iterator)
 
 Define the command and start it.
 
@@ -33,14 +33,14 @@ may change.
 =cut
 
 sub new {
-  my ($class, $repo, $hasher, $objids, $output_method) = @_;
+  my ($class, $repo, $hasher, $gitsha1s, $output_method) = @_;
   my @cmd = ($repo->_git, qw( cat-file --batch ));
   my $self =
     { repo => $repo,
       hasher => $hasher,
-      objids => $objids, # is consumed in _ids_dump
+      gitsha1s => $gitsha1s, # is consumed in _ids_dump
       output_method => $output_method,
-      # objids_fn => filename of tmpfile once made, then undef when unlinked
+      # gitsha1s_fn => filename of tmpfile once made, then undef when unlinked
       chunk => 128*1024, # bytes of object per bite
       cmd => \@cmd,
       caller => [ caller(0) ] };
@@ -50,37 +50,37 @@ sub new {
 
 sub _ids_dump {
   my ($self) = @_;
-  my $iter_in = delete $self->{objids}
-    or confess "read objids: too late";
-  my ($fh, $filename) = tempfile('objids.txt.XXXXXX', TMPDIR => 1);
+  my $iter_in = delete $self->{gitsha1s}
+    or confess "read gitsha1s: too late";
+  my ($fh, $filename) = tempfile('gitsha1s.txt.XXXXXX', TMPDIR => 1);
   local $\ = "\n"; # ORS
   while (my ($nxt) = $iter_in->nxt) {
     print {$fh} $nxt or die "printing to $filename: $!";
   }
   close $fh or die "closing $filename: $!";
-  $self->{objids_fn} = $filename;
+  $self->{gitsha1s_fn} = $filename;
   return $filename;
 }
 
 # this interface to the filename enforces write-once-read-then-unlink
 sub _ids_fn {
   my ($self) = @_;
-  return $self->_ids_dump unless exists $self->{objids_fn};
-  return $self->{objids_fn}; # undef after _cleanup unlinks
+  return $self->_ids_dump unless exists $self->{gitsha1s_fn};
+  return $self->{gitsha1s_fn}; # undef after _cleanup unlinks
 }
 
 sub _cleanup {
   my ($self) = @_;
-  my $fn = $self->{objids_fn}; # not _ids_fn, don't create-just-to-unlink
+  my $fn = $self->{gitsha1s_fn}; # not _ids_fn, don't create-just-to-unlink
   unlink $fn if defined $fn; # on error...  well we left some cruft
-  undef $self->{objids_fn};
+  undef $self->{gitsha1s_fn};
   return;
 }
 
 sub start {
   my ($self) = @_;
   my $objlist = $self->_ids_fn;
-  confess "read objids_fn: too late" unless defined $objlist;
+  confess "read gitsha1s_fn: too late" unless defined $objlist;
 
   my $pid = open my $fh, '-|';
   if (!defined $pid) {
@@ -126,7 +126,7 @@ sub finish {
 In list context, fetch one Git object from the parent C<nxt> and feed
 it, in chunks if necessary, to the ObjHasher.
 
-When the objectid comes back missing, C<warn> and continue with the
+When the gitsha1 comes back missing, C<warn> and continue with the
 next.
 
 Return the output of the chosen ObjHasher method; or nothing at
@@ -153,23 +153,23 @@ sub nxt {
   return () unless defined $line;
 
   chomp $line;
-  my ($objid, $type, $size) = $line =~ m{^(\S+) (\S+)(?: (\d+))?$} or
+  my ($gitsha1, $type, $size) = $line =~ m{^(\S+) (\S+)(?: (\d+))?$} or
     $self->fail("cat-file parse fail on '\Q$line\E'");
 
   if ($type eq 'missing') {
-    warn "Expected objectid $objid, it is missing\n";
+    warn "Expected gitsha1 $gitsha1, it is missing\n";
     return $self->nxt;
   }
 
   # Object contents follow
-  $hasher->newfile($type, $size, $objid);
+  $hasher->newfile($type, $size, $gitsha1);
   my $blk;
   my $bytes_left = $size;
   $self->irs(\$chunk);
   while ($bytes_left > 0) {
     $chunk = $bytes_left if $bytes_left < $chunk;
     ($blk) = $self->SUPER::nxt;
-    $self->fail("EOF with $bytes_left/$size to go of $objid") if !defined $blk;
+    $self->fail("EOF with $bytes_left/$size to go of $gitsha1") if !defined $blk;
     $hasher->add($blk);
     $bytes_left -= length($blk);
   }
@@ -178,7 +178,7 @@ sub nxt {
   $self->irs("\n");
   ($blk) = $self->SUPER::nxt;
   $blk = '[eof]' unless defined $blk;
-  $self->fail("object $objid unterminated ($blk)") unless $blk eq "\n";
+  $self->fail("object $gitsha1 unterminated ($blk)") unless $blk eq "\n";
 
   # Return value
   return scalar $hasher->$output_method;

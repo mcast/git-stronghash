@@ -228,22 +228,22 @@ sub add_trees {
       # 100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391       0	mtgg
       # 100644 blob f00c965d8307308469e537302baa73048488f162      21	ten
       iregex(qr{^\s*([0-7]{6}) (tree|blob|commit) ([0-9a-f]+)\s+(-|\d+)\t(.+)\x00},
-	     "Can't read lstree(mode,type,objid,size,name)");
+	     "Can't read lstree(mode,type,gitsha1,size,name)");
     while (my ($nxt) = $ls_tree->nxt) {
-      my ($mode, $type, $objid, $size, $name) = @$nxt;
+      my ($mode, $type, $gitsha1, $size, $name) = @$nxt;
       # type: tree | blob, via regex
       if ($type eq 'tree') {
 	# no need to scan, existing "git ls-tree -r" is already
-	$scanned{$objid} = undef;
+	$scanned{$gitsha1} = undef;
 
       } elsif ($type eq 'commit') {
-        warn "TODO: Ignoring submodule '$mode $type $objid $size $name'\n"
-          unless $treeci_ignored{"$objid:$name"}++;;
+        warn "TODO: Ignoring submodule '$mode $type $gitsha1 $size $name'\n"
+          unless $treeci_ignored{"$gitsha1:$name"}++;;
 
       } else {
 	if ($type eq 'blob') { # uncoverable branch false (last case, weird structure for 'impossible')
 
-	  $blobs->{$objid} = $size;
+	  $blobs->{$gitsha1} = $size;
 	
 	} else {
 	  die "ls-tree gave me unexpected $type"; # uncoverable statement
@@ -293,7 +293,7 @@ These create L<App::Git::StrongHash::Iterator>s which can
 
 =item iter_*() # with no arguments,
 
-Return L<App::Git::StrongHash::Listerator> containing sorted objectids
+Return L<App::Git::StrongHash::Listerator> of sorted gitsha1 objectids
 of the requested type.
 
 =item iter_*(bin => $hasher)

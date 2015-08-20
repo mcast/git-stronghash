@@ -37,7 +37,7 @@ L</htypes>.
 =item nci
 
 Total number of commits to be hashed.  This is written to the header,
-and the objectid-sorted commit hashes are written next in the
+and the gitsha1-sorted commit hashes are written next in the
 digestfile, to support fast lookup of whether a commit is present.
 
 =item nblob
@@ -242,7 +242,7 @@ other file or progress state.
 sub clone {
   my ($self) = @_;
   my $new = { %$self };
-  delete @{$new}{qw{ _hasher objid }};
+  delete @{$new}{qw{ _hasher gitsha1 }};
   bless $new, ref($self);
   return $new;
 }
@@ -323,46 +323,46 @@ sub rowlen {
 }
 
 
-=head2 newfile($type, $size, $objid)
+=head2 newfile($type, $size, $gitsha1)
 
 Reset hashers for a new object of given type, size and (full-length
-hex) Git objectid.  The contents are given to L</add>.
+hex) gitsha1.  The contents are given to L</add>.
 
 =cut
 
 sub newfile {
-  my ($self, $type, $size, $objid) = @_;
+  my ($self, $type, $size, $gitsha1) = @_;
 
   foreach my $h ($self->_hashers) {
     $h->reset;
   }
 
   # update ->clone if adding state
-  $self->{objid} = $objid;
+  $self->{gitsha1} = $gitsha1;
 
   return;
 }
 
 
-=head2 objid_hex()
+=head2 gitsha1_hex()
 
-=head2 objid_bin()
+=head2 gitsha1_bin()
 
-Return Git objectid of current object, as given to L</newfile>, either
-as hex or binary.
+Return gitsha1 of current object, as given to L</newfile>, either as
+hex or binary.
 
 =cut
 
-sub objid_hex {
+sub gitsha1_hex {
   my ($self) = @_;
-  my $objid = $self->{objid};
-  croak "No current object" unless defined $objid;
-  return $objid;
+  my $gitsha1 = $self->{gitsha1};
+  croak "No current object" unless defined $gitsha1;
+  return $gitsha1;
 }
 
-sub objid_bin {
+sub gitsha1_bin {
   my ($self) = @_;
-  return pack('H*', $self->objid_hex);
+  return pack('H*', $self->gitsha1_hex);
 }
 
 sub _htype {
@@ -401,8 +401,8 @@ Finalise (consume) and return as a binary blob all the digests.
 sub output_bin {
   my ($self) = @_;
   my @hbin = map { $_->digest } $self->_hashers;
-  my $out = join '', $self->objid_bin, @hbin;
-  undef $self->{objid};
+  my $out = join '', $self->gitsha1_bin, @hbin;
+  undef $self->{gitsha1};
   return $out;
 }
 
@@ -423,10 +423,10 @@ sub output_hex {
   my ($self) = @_;
   my @h16 = map { $_->clone->hexdigest } $self->_hashers;
   my @hkey = ($self->_hashnames);
-  my %out = (objid => $self->objid_hex);
+  my %out = (gitsha1 => $self->gitsha1_hex);
   @out{@hkey} = @h16;
   return %out if wantarray;
-  my $txt = (join ' ', map { "$_:$out{$_}" } (objid => @hkey))."\n";
+  my $txt = (join ' ', map { "$_:$out{$_}" } (gitsha1 => @hkey))."\n";
   return $txt;
 }
 
