@@ -212,6 +212,24 @@ sub wantbinmode {
 }
 
 
+=head2 packfmt4type($htype)
+
+Return the text string suitable for C<pack> or C<unpack> to transform
+the given hash type.
+
+Git objectids are known as C<gitsha1>.
+
+Unrecognised names generate an error.
+
+=cut
+
+sub packfmt4type {
+  my ($called, $htype) = @_;
+  return 'H40' if $htype eq 'gitsha1';
+  my $bit = Digest::SHA->new($htype)->hashsize;
+  return 'H'.($bit / 4);
+}
+
 =head1 OBJECT METHODS
 
 =head2 clone()
