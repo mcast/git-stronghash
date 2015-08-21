@@ -105,13 +105,16 @@ sub start {
 
 sub _child {
   my ($self, $fn, @cmd) = @_;
-  unless (open STDIN, '<', $fn) {
-    @cmd = qw( false );
-    warn "open $fn for reading: $!";
+  # the uncoverables: I covered them, but Devel::Cover doesn't see it..?
+  if (open STDIN, '<', $fn) { # uncoverable branch false
+    exec @cmd;
+    # perl issues warning on fail
+  } else {
+    warn "open $fn to STDIN: $!"; # uncoverable statement
   }
-  exec @cmd;
-  warn "exec '@cmd' failed: $!";
-  POSIX::_exit(1);
+  close STDOUT; # uncoverable statement
+  close STDERR; # uncoverable statement
+  POSIX::_exit(1); # uncoverable statement
 }
 
 

@@ -25,7 +25,7 @@ sub main {
     is_deeply(\@seq, plusNL(5 .. 15), "5..15 ele");
     t_nxt_wantarray($seq);
     like(tryerr { my @n = $seq->nxt },
-	 qr{^ERR:not running in 'seq},
+	 qr{^ERR:command has finished in 'seq},
 	 "5..15 olivertwist");
     like(tryerr { $seq->finish },
 	 qr{^ERR:double finish in 'seq},

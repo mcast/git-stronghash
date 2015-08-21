@@ -162,7 +162,7 @@ sub nxt {
   croak "wantarray!" unless wantarray;
   $self->start unless $self->started;
   my $fh = $self->{fh};
-  $self->fail("not running") unless $fh;
+  $self->fail("command has finished") unless $fh;
   my $ln = do { local $/ = $self->irs; <$fh> };
   if (defined $ln) {
     return ($ln);

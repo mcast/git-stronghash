@@ -20,7 +20,7 @@ use Local::TestUtil qw( testrepo_or_skip tryerr bin2hex t_nxt_wantarray );
 
 sub main {
   my $testrepo = testrepo_or_skip();
-  plan tests => 5;
+  plan tests => 6;
 
   subtest "catfile" => sub {
     my @ids = qw( 25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb
@@ -71,6 +71,7 @@ sub main {
   subtest breakage => \&tt_breakage;
   subtest missing  => \&tt_missing;
   subtest "test-data/" => sub { tt_testrepo($testrepo) };
+  subtest kidcrash => \&tt_kidcrash;
 
   local $TODO = 'L8R';
   fail('check zombie acculumation');
@@ -169,6 +170,64 @@ sub tt_testrepo {
   my %hdr = $H->header_bin2txt($df2);
   cmp_ok($hdr{nobj}, '==', $nobj, 'digestfile nobj');
   cmp_ok(length($df2), '==', $hdr{hdrlen} + $hdr{nobj} * $hdr{rowlen}, 'digestfile length');
+
+  return;
+}
+
+sub tt_kidcrash {
+  my $testrepo = testrepo_or_skip();
+  my $R = App::Git::StrongHash::Objects->new($testrepo)->add_commits;
+  my $H = App::Git::StrongHash::ObjHasher->new
+    (htype => [qw[ sha256 ]], nci => 0, nobj => 0);
+
+  # Run program which fails
+  my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $R->iter_ci);
+  $CF->{cmd} = [qw[ false ]];
+  like(tryerr { my @n = $CF->nxt; $n[0] },
+       qr{^ERR:command returned 1 in 'false'}, 'false');
+  like(tryerr { my @n = $CF->nxt; $n[0] },
+       qr{^ERR:command has finished in 'false'}, 'not false again');
+
+  # Run program which doesn't exist, warnings to STDOUT
+  $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $R->iter_ci);
+  $CF->{cmd} = [qw[ /does/not/exist ]];
+  my $prog_dne = tryerr {
+    local $SIG{__WARN__} =
+      # warning of fail goes into parser, before exit(1)
+      sub { print STDOUT "warn: @_" };
+    my @n = $CF->nxt;
+    $n[0];
+  };
+  my $prog_dne_re = qr{^ERR:cat-file parse fail on '(.*)' in '/does/not/exist'};
+  like($prog_dne, $prog_dne_re, 'run /d/n/e parse junk');
+  my ($run_warn) = # the text we wanted to see happen
+    $prog_dne =~ $prog_dne_re;
+  $run_warn =~ s{\\(.)}{$1}g; # un-quotemeta
+  like($run_warn,
+       qr{^warn: Can't exec "/does/not/exist": No such file or directory at \S*blib/lib/App/Git/StrongHash/CatFilerator.pm line \d+\.$},
+       'run /d/n/e post-exec warn');
+  like(tryerr { my @n = $CF->nxt; $n[0] },
+       qr{^ERR:command returned 1 in '/does/not},
+       'run /d/n/e exit code follows');
+  like(tryerr { my @n = $CF->nxt; $n[0] },
+       qr{^ERR:command has finished in '/does/not},
+       'run /d/n/e refuse repeat');
+
+  # Feed program from absent input file, warnings to STDOUT
+  $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $R->iter_ci);
+  $CF->{gitsha1s_fn} = '/does/not/exist';
+  my $input_dne = tryerr {
+    local $SIG{__WARN__} = sub { print STDOUT "warn: @_" };
+    my @n = $CF->nxt;
+    $n[0];
+  };
+  $input_dne =~ s{\\(.)}{$1}g; # un-quotemeta
+  like($input_dne,
+       qr{^ERR:cat-file parse fail on 'warn: open /does/not/exist to STDIN: No such file or },
+       'pipe from /d/n/e post-exec warn');
+  like(tryerr { my @n = $CF->nxt; $n[0] },
+       qr{^ERR:command returned 1 in 'git .* cat-file --batch'},
+       'pipe from /d/n/e exit code follows');
 
   return;
 }
