@@ -21,7 +21,7 @@ sub main {
   my $JUNK_CIID = '0123456789abcdef0123456789abcdef01234567';
   my ($DATA) = LoadFile("$0.yaml");
 
-  plan tests => 15;
+  plan tests => 16;
 
   foreach my $path (qw( to_header/text to_header/h2_text from_header/out )) {
     my @p = split m{/}, $path;
@@ -243,19 +243,25 @@ sub main {
 
   subtest wantbinmode => sub {
     my $fh = fh_on(any => 'junk');
-    is(tryerr { App::Git::StrongHash::ObjHasher->wantbinmode($fh) },
+    is(tryerr { $OH->wantbinmode($fh) },
        $fh, "ok");
     binmode $fh, ":crlf" or die $!;
-    like(tryerr { App::Git::StrongHash::ObjHasher->wantbinmode($fh) },
+    like(tryerr { $OH->wantbinmode($fh) },
 	 qr{^ERR:Filehandle GLOB\S+ should be in binmode but is .*\bcrlf\b.* at \S+/StrongHash/ObjHasher\.pm line \d+\.\n\s+App::Git::StrongHash::ObjHasher::wantbinmode\(.*\) called at \Q$0\E line},
 	 "text: confessed");
     close $fh;
-    like(tryerr { App::Git::StrongHash::ObjHasher->wantbinmode($fh) },
+    like(tryerr { $OH->wantbinmode($fh) },
 	 qr{^ERR:Filehandle GLOB\S+ should be in binmode but is \(closed\?\)* at },
 	 "text: confessed");
-    like(tryerr { App::Git::StrongHash::ObjHasher->wantbinmode("filename") },
+    like(tryerr { $OH->wantbinmode("filename") },
 	 qr{^ERR:Filehandle filename should be in binmode but is scalar! at },
 	 "filename");
+  };
+
+  subtest packfmt4type => sub {
+    is($OH->packfmt4type('gitsha1'), 'H40', 'gitsha1');
+    is($OH->packfmt4type('sha1'), 'H40', 'sha1');
+    is($OH->packfmt4type('sha512'), 'H128', 'sha512');
   };
 
   return 0;

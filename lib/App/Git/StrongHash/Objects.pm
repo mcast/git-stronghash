@@ -256,6 +256,20 @@ sub add_trees {
   return $self;
 }
 
+
+=head2 add_all()
+
+Convenience method calls L</add_tags>, L</add_commits> and
+L</add_trees> in turn.  Returns $self.
+
+=cut
+
+sub add_all {
+  my ($self) = @_;
+  return $self->add_tags->add_commits->add_trees;
+}
+
+
 # TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
 # TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
 # TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
@@ -279,6 +293,48 @@ sub mkhasher {
 }
 
 
+=head2 iter_all(@arg)
+
+Return an L<App::Git::StrongHash::Iterator> which runs across all the
+gitsha1 ids.
+
+C<@arg> may be
+
+=over 4
+
+=item () # no arguments,
+
+Return L<App::Git::StrongHash::Listerator> of sorted gitsha1 objectids
+of the requested type.
+
+=item (bin => $hasher)
+
+When passed an L<App::Git::StrongHash::ObjHasher>, return an Iterator
+which will read the objects from disk and send them to the ObjHasher
+in turn, yielding the C<output_bin> from each in order.
+
+=item (txt => $hasher)
+
+After passing objects to the ObjHasher, return C<<scalar $hasher->output_hex >>.
+
+=item (hash => $hasher)
+
+After passing objects to the ObjHasher, return C<<{ $hasher->output_hex } >>.
+
+=back
+
+=cut
+
+sub iter_all {
+  my ($self, @arg) = @_;
+  return App::Git::StrongHash::Penderator->new
+    ($self->iter_ci(@arg),
+     $self->iter_tag(@arg),
+     $self->iter_tree(@arg),
+     $self->iter_blob(@arg));
+}
+
+
 =head2 iter_tag
 
 =head2 iter_ci
@@ -287,30 +343,8 @@ sub mkhasher {
 
 =head2 iter_blob
 
-These create L<App::Git::StrongHash::Iterator>s which can
-
-=over 4
-
-=item iter_*() # with no arguments,
-
-Return L<App::Git::StrongHash::Listerator> of sorted gitsha1 objectids
-of the requested type.
-
-=item iter_*(bin => $hasher)
-
-When passed an L<App::Git::StrongHash::ObjHasher>, return an Iterator
-which will read the objects from disk and send them to the ObjHasher
-in turn, yielding the C<output_bin> from each in order.
-
-=item iter_*(txt => $hasher)
-
-After passing objects to the ObjHasher, return C<<scalar $hasher->output_hex >>.
-
-=item iter_*(hash => $hasher)
-
-After passing objects to the ObjHasher, return C<<{ $hasher->output_hex } >>.
-
-=back
+These create the individual L<App::Git::StrongHash::Iterator>s which
+L</iter_all> uses, and take the same C<@arg>.
 
 =cut
 
@@ -391,11 +425,7 @@ opens and closes the file.
 sub mkdigesfile {
   my ($self, $fh, $hasher) = @_;
   App::Git::StrongHash::ObjHasher->wantbinmode($fh);
-  my $stream = App::Git::StrongHash::Penderator->new
-    ($self->iter_ci(bin => $hasher),
-     $self->iter_tag(bin => $hasher),
-     $self->iter_tree(bin => $hasher),
-     $self->iter_blob(bin => $hasher));
+  my $stream = $self->iter_all(bin => $hasher);
   print {$fh} $hasher->header_bin or die "Writing header failed: $!";
   while (my @nxt = $stream->nxt) {
     print {$fh} $nxt[0] or die "Writing body failed: $!";

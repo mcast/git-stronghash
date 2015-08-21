@@ -2,7 +2,10 @@ package App::Git::StrongHash::DigestReader;
 use strict;
 use warnings;
 
+use Carp;
 use App::Git::StrongHash::ObjHasher;
+
+use parent 'App::Git::StrongHash::Iterator';
 
 
 =head1 NAME
@@ -31,7 +34,7 @@ about 11.5 MiB, but there is current no need for random access.
 =cut
 
 sub new {
-  my ($class, $fh, $name) = @_;
+  my ($class, $name, $fh) = @_;
   App::Git::StrongHash::ObjHasher->wantbinmode($fh);
   my $self = { fh => $fh, name => $name };
   bless $self, $class;
@@ -91,36 +94,39 @@ sub _nxt_init {
   my ($self) = @_;
   my $nxt = sub {
     croak "wantarray!" unless wantarray;
-    $self->header unless $self->{header};
+    my %hdr = $self->header;
     my $fh = $self->_fh;
-    my $rowlen = $self->{header}{rowlen};
-    return $self->_nxt_iter($fh, $rowlen)->();
+    my $rowlen = $hdr{rowlen};
+    my $fmt = join ' ',
+      map { App::Git::StrongHash::ObjHasher->packfmt4type($_) }
+      (gitsha1 => @{ $hdr{htype} });
+    return $self->_nxt_iter($fh, $rowlen, $fmt)->();
   };
   return $self->{nxt} = $nxt;
 }
 
 sub _nxt_iter {
-  my ($self, $fh, $rowlen) = @_;
+  my ($self, $fh, $rowlen, $fmt) = @_;
   my $nxt = sub {
     croak "wantarray!" unless wantarray;
-    local $/ = \$rowlen;
-    my $binrow = <$fh>;
+    my $binrow = do { local $/ = \$rowlen; <$fh> };
+    if (!defined $binrow) {
+      $self->{nxt} = $self->_nxt_eof;
+      return ();
+    }
+    my @out = unpack($fmt, $binrow);
+    return \@out;
   };
   return $self->{nxt} = $nxt;
 }
 
-
-=head2 dcount()
-
-As for L<App::Git::StrongHash::Iterator/count> but faster.
-
-=cut
-
-sub dcount {
+sub _nxt_eof {
   my ($self) = @_;
-  my $n = @{ $self->{lst} };
-  @{ $self->{lst} } = ();
-  return $n;
+  undef $self->{fh}; # just drop it, caller might close
+  return sub {
+    croak "wantarray!" unless wantarray;
+    return ();
+  };
 }
 
 
