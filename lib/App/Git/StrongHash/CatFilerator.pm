@@ -23,9 +23,15 @@ L<App::Git::StrongHash::ObjHasher>.
 
 =head1 CLASS METHOD
 
-=head2 new($repo, $hasher, $gitsha1_iterator)
+=head2 new($repo, $hasher, $gitsha1_iterator, $output_method)
 
-Define the command and start it.
+Defines a Git command to C<git cat-file> the listed objects, which
+will be L</start>ed later.  Object data is sent to $hasher (an
+L<App::Git::StrongHash::ObjHasher>) and $output_method is called on it
+at the end of each object.
+
+L</nxt> returns the result of each $output_method call.  The
+C<output_*> method names are suitable, default is L</output_hex>.
 
 The iterator B<might not> be consumed in this thread - implementation
 may change.
@@ -34,6 +40,7 @@ may change.
 
 sub new {
   my ($class, $repo, $hasher, $gitsha1s, $output_method) = @_;
+  $output_method ||= 'output_hex';
   my @cmd = ($repo->_git, qw( cat-file --batch ));
   my $self =
     { repo => $repo,

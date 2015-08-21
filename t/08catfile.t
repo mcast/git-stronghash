@@ -32,8 +32,9 @@ sub main {
        nci => 0, nblob => 0, nobj => 0, blobbytes => 0);
 
     my $ids = App::Git::StrongHash::Listerator->new(@ids);
-    my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $ids, 'output_hex');
+    my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $ids);
 
+    is($CF->{output_method}, 'output_hex', 'default output_method'); # wrong place
     t_nxt_wantarray($CF);
 
     my $tmp_fn = $CF->_ids_fn; # may go Away, but for now me must see cleanup
