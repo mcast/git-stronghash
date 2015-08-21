@@ -81,6 +81,7 @@ sub start {
   my @cmd = @{ $self->{cmd} };
   my ($pid, $fh);
   try {
+    $self->{pid} = 0; # make 'started' true
     $pid = open $fh, '-|', @cmd;
   } catch {
     $self->fail("fork died: $_");

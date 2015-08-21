@@ -89,6 +89,7 @@ sub start {
   my $objlist = $self->_ids_fn;
   confess "read gitsha1s_fn: too late" unless defined $objlist;
 
+  $self->{pid} = 0; # make 'started' true
   my $pid = open my $fh, '-|';
   if (!defined $pid) {
     $self->fail("fork failed: $!");
