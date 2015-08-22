@@ -1,0 +1,6 @@
+#! perl
+use strict;
+use warnings;
+
+use App::Git::StrongHash;
+exit App::Git::StrongHash->dump;
