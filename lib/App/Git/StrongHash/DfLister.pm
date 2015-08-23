@@ -21,6 +21,8 @@ Iterate the digestfile, keeping the gitsha1s as keys in a hash.
 
 C<@arg> are as for L<App::Git::StrongHash::DigestReader>.
 
+TODO: Extend args.  May need to index by another column.  May want to index only commits.
+
 =cut
 
 sub new {

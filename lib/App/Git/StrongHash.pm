@@ -31,7 +31,7 @@ sub all {
   my @htype;
   GetOptions('htype|t=s', \@htype);
   die "Syntax: $0 [ -t <hashtype> ]* > myrepo.stronghash\n" if @ARGV || -t STDOUT;
-  @htype = qw( gitsha1 sha256 ) unless @htype;
+  @htype = qw( sha256 ) unless @htype;
   unshift @htype, 'gitsha1';
 
   my $cwd = cwd();
