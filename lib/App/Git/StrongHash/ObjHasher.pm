@@ -77,6 +77,7 @@ sub _init {
 
   # Take the config
   my @htype = @{ delete $info{htype} || [] };
+  shift @htype if $htype[0] eq 'gitsha1'; # TODO:HTYPE remove later, we want it in the header
   $self->{htype} = \@htype;
 
   foreach my $key (qw( nci nblob nobj blobbytes )) {
@@ -185,6 +186,7 @@ sub header_bin2txt {
   my %out;
   @out{ @{$sample{_order}} } = unpack($sample{_pack}, $buf);
   $out{htype} = [ split ',', $out{htype} ];
+  unshift @{ $out{htype} }, 'gitsha1' if $out{filev} == 1; # TODO:HTYPE remove when filev=1 gone
 
 #  $out{_rawhdr} = $buf if $keep_hdr;
 #  main::diag main::bin2hex($buf);
@@ -276,13 +278,13 @@ sub header_txt {
   my @hdr =
     (_pack =>'a12 n5 Z* Z* Z*',
      magic => HEADER_MAGIC(),
-     filev => 1,
+     filev => 2,
      hdrlen => undef, # later
      rowlen => $self->rowlen,
      nci => $self->{nci},
      nobj => $self->{nobj},
      progv => $self->{code},
-     htype => (join ',', $self->_htype),
+     htype => (join ',', gitsha1 => $self->_htype),
      comment => 'n/c', # TODO: add API for optional comment
 
      # local timestamp - an obvious thing to include, but what value?
@@ -368,7 +370,7 @@ sub gitsha1_bin {
   return pack('H*', $self->gitsha1_hex);
 }
 
-sub _htype {
+sub _htype { # TODO:HTYPE should include gitsha1 but does not yet (internally)
   my ($self) = @_;
   return @{ $self->{htype} };
 }

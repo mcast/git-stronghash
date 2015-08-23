@@ -28,7 +28,7 @@ sub main {
 		  96cc558853a03c5d901661af837fceb7a81f58f6 );
     my $R = App::Git::StrongHash::Objects->new($testrepo);
     my $H = App::Git::StrongHash::ObjHasher->new
-      (htype => [qw[ sha256 ]],
+      (htype => [qw[ gitsha1 sha256 ]],
        nci => 0, nblob => 0, nobj => 0, blobbytes => 0);
 
     my $ids = App::Git::StrongHash::Listerator->new(@ids);
@@ -116,7 +116,7 @@ sub tt_missing {
   my $testrepo = testrepo_or_skip();
   my $R = App::Git::StrongHash::Objects->new($testrepo);
   my $H = App::Git::StrongHash::ObjHasher->new
-    (htype => [qw[ sha256 ]], nci => 2, nobj => 2, nblob => 0, blobbytes => 0);
+    (htype => [qw[ gitsha1 sha256 ]], nci => 2, nobj => 2, nblob => 0, blobbytes => 0);
   my $ids = App::Git::StrongHash::Listerator->new
     (qw( 123456789abcdef0123456789abcdef012345678 96cc5588 )); # missing; seq 1 50
   my @w;
@@ -139,7 +139,7 @@ sub tt_testrepo {
   my $repo = App::Git::StrongHash::Objects->new($testrepo);
   $repo->add_tags->add_commits->add_trees;
 
-  my $H = $repo->mkhasher(htype => [qw[ sha1 sha256 ]]);
+  my $H = $repo->mkhasher(htype => [qw[ gitsha1 sha1 sha256 ]]);
   my $nobj = $H->{nci} + $H->{nblob} + 1 + 10; # + tags(anno) + trees
   is($H->{nci}, 8, "nci");
   is($H->{nblob}, 6, "nblob");
@@ -178,7 +178,7 @@ sub tt_kidcrash {
   my $testrepo = testrepo_or_skip();
   my $R = App::Git::StrongHash::Objects->new($testrepo)->add_commits;
   my $H = App::Git::StrongHash::ObjHasher->new
-    (htype => [qw[ sha256 ]], nci => 0, nobj => 0);
+    (htype => [qw[ gitsha1 sha256 ]], nci => 0, nobj => 0);
 
   # Run program which fails
   my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $R->iter_ci);

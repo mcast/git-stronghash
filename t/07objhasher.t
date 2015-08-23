@@ -34,8 +34,10 @@ sub main {
 
   is(hex2bin($DATA->{'test-data/ten'}), slurp("$testrepo/ten"), "hex2bin util");
 
-  my @HT = $OH->htypes;
-  my %OK = (htype => \@HT, nci => 1, nobj => 1, nblob => 0, blobbytes => 0);
+  my @HT =
+    grep { $_ ne 'gitsha1' } # TODO:HTYPE remove when we can hash with it again
+    $OH->htypes;
+  my %OK = (htype => [ gitsha1 => @HT ], nci => 1, nobj => 1, nblob => 0, blobbytes => 0);
   my $H = $OH->new(%OK);
   $H->newfile(commit => 200, $JUNK_CIID);
   cmp_ok(length($H->output_bin), '==', $H->rowlen, "length(output_bin) == rowlen");
@@ -151,17 +153,17 @@ sub main {
     my @unordered = grep { !exists $ordered{$_} } sort keys %hdr;
     is("@unordered", "_order _pack", "header fields not in the ordering");
 
-    my %tst2 = (%OK, htype => [ 'sha256' ], nci => 64, nobj => 1024);
+    my %tst2 = (%OK, htype => [ gitsha1 => 'sha256' ], nci => 64, nobj => 1024);
     my $H2 = $OH->new(%tst2);
     is_deeply({ $H2->header_txt }, $T->{h2_text}, "H2 text");
 
     my $L;
     my $oflow = 9357;
-    my $H3 = $OH->new(%OK, htype => [ ('sha256') x $oflow ]);
+    my $H3 = $OH->new(%OK, htype => [ gitsha1 => ('sha256') x $oflow ]);
     like(tryerr { $L = __LINE__; $H3->header_bin },
 	 qr{^ERR:Overflowed uint16 on header field rowlen=>299444 at \Q$0 line $L.},
 	 "H3 row: short overflow");
-    $H3 = $OH->new(%OK, htype => [ ('sha256') x ($oflow+1) ]);
+    $H3 = $OH->new(%OK, htype => [ gitsha1 => ('sha256') x ($oflow+1) ]);
     like(tryerr { $L = __LINE__; $H3->header_bin },
 	 qr{^ERR:Overflowed uint16 on header field hdrlen=>65537 at \Q$0 line $L.},
 	 "H3 hdr: short overflow");
@@ -217,7 +219,7 @@ sub main {
 
   subtest layer_check => sub {
     my $T = $DATA->{layer_check};
-    my %in = (htype => [qw[ sha256 sha1 ]], nci => 1);
+    my %in = (htype => [qw[ gitsha1 sha256 sha1 ]], nci => 1);
     foreach my $short (0x0A0D, 0x0D0A, 0xC2A3, 0xA3C2, 0x7FFF, 0xFF7F, 0x8000, 0x0080) {
       $in{nobj} = $short;
       my $hdr = $OH->new(%in)->header_bin;

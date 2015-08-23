@@ -61,7 +61,7 @@ sub main {
 		nci => 2,
 		nobj => 5,
 		rowlen => 40,
-		htype => [ 'sha1' ],
+		htype => [ gitsha1 => 'sha1' ],
 		progv => '0.01',
 		comment => 'n/c' },
 	      'b105de8d: header')

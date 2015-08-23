@@ -31,7 +31,8 @@ sub all {
   my @htype;
   GetOptions('htype|t=s', \@htype);
   die "Syntax: $0 [ -t <hashtype> ]* > myrepo.stronghash\n" if @ARGV || -t STDOUT;
-  @htype = qw( sha256 ) unless @htype;
+  @htype = qw( gitsha1 sha256 ) unless @htype;
+  unshift @htype, 'gitsha1';
 
   my $cwd = cwd();
   my $repo = App::Git::StrongHash::Objects->new($cwd);
@@ -55,7 +56,7 @@ sub dump {
   my %hdr = $dfr->header;
   print Dump({ filename => $fn, header => \%hdr });
   print "...\n";
-  my @htype = (gitsha1 => @{ $hdr{htype} });
+  my @htype = @{ $hdr{htype} };
   my @hlen = map { App::Git::StrongHash::ObjHasher->packfmt4type($_) } @htype;
   foreach (@hlen) { s/^H//; $_ = "%-${_}s" }
   printf((join ' ', @hlen)."\n", @htype);

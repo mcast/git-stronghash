@@ -24,7 +24,7 @@ sub main {
     my $df = App::Git::StrongHash::DigestReader->new(testdata => $df_fh);
     t_nxt_wantarray($df);
     my %df_hdr = $df->header;
-    is_deeply($df_hdr{htype}, [qw[ sha512 sha256 ]], "htypes");
+    is_deeply($df_hdr{htype}, [qw[ gitsha1 sha512 sha256 ]], "htypes");
     my @df_hash # list of [ gitsha1, @hash ]
       = $df->nxt;
     t_nxt_wantarray($df);

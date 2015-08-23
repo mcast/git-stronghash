@@ -99,7 +99,7 @@ sub _nxt_init {
     my $rowlen = $hdr{rowlen};
     my $fmt = join ' ',
       map { App::Git::StrongHash::ObjHasher->packfmt4type($_) }
-      (gitsha1 => @{ $hdr{htype} });
+      @{ $hdr{htype} };
     return $self->_nxt_iter($fh, $rowlen, $fmt)->();
   };
   return $self->{nxt} = $nxt;
