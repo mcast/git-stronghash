@@ -48,8 +48,8 @@ sub all {
 
 sub dump {
   my ($fn) = @ARGV;
-  die "Syntax: $0 <digestfile> | less -S\n" unless 1==@ARGV && -f $fn;
-  open my $fh, '<', $fn or die "Read $fn: $!";
+  die "Syntax: $0 <digestfile> | less -S\n" unless 1==@ARGV;
+  open my $fh, '<', $fn or die "Read $fn: $!\n";
   binmode $fh or die "binmode $fn: $!";
   my $dfr = App::Git::StrongHash::DigestReader->new($fn => $fh);
   my %hdr = $dfr->header;

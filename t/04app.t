@@ -76,6 +76,9 @@ sub main {
     like(qx{t/_stdmerge $bin/git-stronghash-dump},
 	 qr{^Syntax: \S+/git-stronghash-dump },
 	 'some help text');
+    like(qx{t/_stdmerge $bin/git-stronghash-dump /does/not/exist},
+	 qr{^Read /does/not/exist: No such file or directory$},
+	 'input not found');
   };
 
   return 0;
