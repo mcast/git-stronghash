@@ -64,7 +64,7 @@ sub _objid {
 }
 
 
-=haed2 find(@objid)
+=head2 find(@objid)
 
 Return 0 or 1 for each @objid.
 

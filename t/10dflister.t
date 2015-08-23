@@ -12,7 +12,7 @@ use Local::TestUtil qw( testdigestfile tryerr );
 
 
 sub main {
-  plan tests => 6;
+  plan tests => 7;
   unified_diff;
 
   my $dfl_self = App::Git::StrongHash::DfLister->new
@@ -32,6 +32,10 @@ sub main {
   is(rangify(values %newci_idx),
      '41..88', # 41 == 0.01, 88 = iec
      'whittle: get old ones');
+
+  like(tryerr { $dfl_self->whittle({}) },
+       qr{^ERR:Set \$exist true to keep unseens, },
+       'whittle: need bool');
 
   my $new = {};
   @{$new}{@self_newci} = (0 .. $#self_newci);
