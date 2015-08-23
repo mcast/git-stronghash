@@ -47,7 +47,7 @@ sub t_nxt_wantarray {
 
 sub testdigestfile {
   my ($base) = @_;
-  my $fn = "t/digestfile/$base.stronghash";
+  my $fn = "t/digestfile/v1/$base.stronghash";
   open my $fh, '<', $fn or die "Read $fn: $!";
   binmode $fh or die $!;
   return $fh;

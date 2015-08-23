@@ -48,7 +48,7 @@ sub main {
   };
 
   subtest dump => sub {
-    my $df = 't/digestfile/test-data-no-tags-b105de8d622dab99968653e591d717bc9d753eaf.stronghash';
+    my $df = 't/digestfile/v1/test-data-no-tags-b105de8d622dab99968653e591d717bc9d753eaf.stronghash';
     my $cmd = "$bin/git-stronghash-dump $df";
     my $out = qx{$cmd};
     $out =~ s{^(.*\n)\.\.\.\n}{}s or die "YAML split fail";
