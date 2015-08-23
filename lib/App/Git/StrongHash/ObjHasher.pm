@@ -278,13 +278,13 @@ sub header_txt {
   my @hdr =
     (_pack =>'a12 n5 Z* Z* Z*',
      magic => HEADER_MAGIC(),
-     filev => 2,
+     filev => 1,
      hdrlen => undef, # later
      rowlen => $self->rowlen,
      nci => $self->{nci},
      nobj => $self->{nobj},
      progv => $self->{code},
-     htype => (join ',', gitsha1 => $self->_htype),
+     htype => (join ',', $self->_htype),
      comment => 'n/c', # TODO: add API for optional comment
 
      # local timestamp - an obvious thing to include, but what value?

@@ -40,7 +40,7 @@ to_header:
     nci: 1
     nobj: 1
     progv: x.yy_replaced_in_test_code
-    htype: gitsha1,sha1,sha256,sha384,sha512
+    htype: sha1,sha256,sha384,sha512
     comment: n/c
     _order:
       - magic
@@ -67,7 +67,7 @@ to_header:
     nci: 64
     nobj: 1024
     progv: x.yy_replaced_in_test_code
-    htype: gitsha1,sha256
+    htype: sha256
     comment: n/c
     _order:
       - magic
