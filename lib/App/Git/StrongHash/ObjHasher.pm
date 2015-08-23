@@ -166,7 +166,7 @@ sub header_bin2txt {
 
   croak "Bad file magic - is this a 'git stronghash' digests file?"
     unless $magic eq HEADER_MAGIC();
-  my @OKVSN = (1);
+  my @OKVSN = (1, 2);
   croak "Bad file version $filev, only @OKVSN known by code v".App::Git::StrongHash->VERSION
     unless grep { $_ == $filev } @OKVSN;
 
@@ -186,7 +186,13 @@ sub header_bin2txt {
   my %out;
   @out{ @{$sample{_order}} } = unpack($sample{_pack}, $buf);
   $out{htype} = [ split ',', $out{htype} ];
-  unshift @{ $out{htype} }, 'gitsha1' if $out{filev} == 1; # TODO:HTYPE remove when filev=1 gone
+
+  # After first release, we're stuck with all extant filev!
+  # People will be getting digestfiles hashed and signed.
+  if ($filev == 1) {
+    # ...assumed 'gitsha1' as first element of htype
+    unshift @{ $out{htype} }, 'gitsha1';  # TODO:HTYPE remove when filev=1 gone
+  }
 
 #  $out{_rawhdr} = $buf if $keep_hdr;
 #  main::diag main::bin2hex($buf);

@@ -156,8 +156,9 @@ sub tt_testrepo {
   $df_sha->add($df);
   $df_sha = $df_sha->hexdigest;
   is($df_sha,
-     'f50a640c06e2cb34aaf8fa99b57e7a2c1bdce664', # GuruChecksChanges; or at least wonders whether change is expected
+     '09dd604c3f1c3668589fed4d2912d27635591478', # GuruChecksChanges; or at least wonders whether change is expected
      # f50a...e664: I checked first+last few bytes of (gitsha1,sha1,sha256) for first and last objects, they looked perfectly feasible
+     # 09dd...1478: headerlength +=8, htypes starts gitsha1,
      'sha1(digestfile)')
     or diag bin2hex($df);
 

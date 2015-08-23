@@ -27,7 +27,7 @@ sub main {
     my $digestfile = qx{$cmd};
     note explain { len => length($digestfile), cmd => $cmd };
     is(sha1_hex($digestfile),
-       'f50a640c06e2cb34aaf8fa99b57e7a2c1bdce664', # matches 08catfile.t
+       '09dd604c3f1c3668589fed4d2912d27635591478', # matches 08catfile.t
        'git-stronghash-all')
       or note bin2hex($digestfile);
 
