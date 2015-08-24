@@ -63,6 +63,7 @@ Based on my interpretation of this, informed by many articles (references now lo
 
 * Should the file format be more generic?  Rename the project?
     * I renamed all "objid" or "objectid" to "gitsha1" to make this easier.
+    * Digestfiles store the type of the objectid, so could be used for other hash types.
     * I can think of other collections of files I might want to sign incrementally.
     * Maybe I should just put those files in a git / git-annex repository.
     * Other VC systems might want the same solution to this problem.  They would need their own objectid collection and digestfile stashing, but otherwise code can be shared.
@@ -84,6 +85,7 @@ git grep -nE 'TO[D]O' | perl -i -e 'undef $/; $todo=<STDIN>; $todo =~ s{^README.
 ## in-source
 ```
 lib/App/Git/StrongHash/DfLister.pm:24:TODO: Extend args.  May need to index by another column.  May want to index only commits.
+lib/App/Git/StrongHash/ObjHasher.pm:196:    unshift @{ $out{htype} }, 'gitsha1';  # TODO:HTYPE remove when filev=1 gone
 lib/App/Git/StrongHash/ObjHasher.pm:296:     comment => 'n/c', # TODO: add API for optional comment
 lib/App/Git/StrongHash/Objects.pm:99:TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
 lib/App/Git/StrongHash/Objects.pm:101:TODO: should find topdir, and check it's actually a git_dir
@@ -101,6 +103,7 @@ lib/App/Git/StrongHash/Objects.pm:289:  my $ntag = $self->iter_tag->dcount; # TO
 lib/App/Git/StrongHash/Objects.pm:385:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
 lib/App/Git/StrongHash/Piperator.pm:41:# TODO: new_later : defer via a Laterator
 lib/App/Git/StrongHash/Piperator.pm:42:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
+t/07objhasher.t:38:    grep { $_ ne 'gitsha1' } # TODO:HTYPE remove when we can hash with it again
 t/08catfile.t:45:      local $TODO = 'early _cleanup would be nice';
 t/08catfile.t:68:    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
 t/08catfile.t:76:  local $TODO = 'L8R';

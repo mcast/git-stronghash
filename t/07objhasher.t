@@ -87,6 +87,9 @@ sub main {
     like($got, qr{^ERR:nothing to do at \Q$0 line $L.\E}, "no htype");
 
     $got = tryerr { local $tst{htype} = [ "spork", @HT, "wellies" ]; $OH->new(%tst) }; $L = __LINE__;
+    like($got, qr{^ERR:first htype must be gitsha1 \(until.*\) at \Q$0 line $L.\E}, "missing gitsha1 htype");
+
+    $got = tryerr { local $tst{htype} = [ gitsha1 => "spork", @HT, "wellies" ]; $OH->new(%tst) }; $L = __LINE__;
     like($got, qr{^ERR:rejected bad htypes \(spork wellies\) at \Q$0 line $L.\E}, "bad htype");
 
     $got = tryerr { local $tst{nci} = undef; $OH->new(%tst) }; $L = __LINE__;

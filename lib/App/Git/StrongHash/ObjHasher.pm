@@ -77,7 +77,9 @@ sub _init {
 
   # Take the config
   my @htype = @{ delete $info{htype} || [] };
-  shift @htype if @htype && $htype[0] eq 'gitsha1'; # TODO:HTYPE remove later, we want it in the header
+  if (@htype) {
+    $self->_htype_indexby(shift @htype);
+  }
   $self->{htype} = \@htype;
 
   foreach my $key (qw( nci nblob nobj blobbytes )) {
@@ -290,7 +292,7 @@ sub header_txt {
      nci => $self->{nci},
      nobj => $self->{nobj},
      progv => $self->{code},
-     htype => (join ',', gitsha1 => $self->_htype),
+     htype => (join ',', $self->_htype),
      comment => 'n/c', # TODO: add API for optional comment
 
      # local timestamp - an obvious thing to include, but what value?
@@ -376,14 +378,31 @@ sub gitsha1_bin {
   return pack('H*', $self->gitsha1_hex);
 }
 
-sub _htype { # TODO:HTYPE should include gitsha1 but does not yet (internally)
+# the type of all hash columns in the file
+sub _htype {
+  my ($self) = @_;
+  return (gitsha1 => $self->_htype_add);
+}
+
+# the first column of hashes, by which we identify objects
+sub _htype_indexby {
+  my ($self, $set) = @_;
+  die "set only, so far" unless defined $set;
+  croak 'first htype must be gitsha1 (until we have alternatives)'
+    unless $set eq 'gitsha1';
+  # it isn't stored, it is just wired in everywhere
+  return;
+}
+
+# hash type where we read the data to make the hash
+sub _htype_add {
   my ($self) = @_;
   return @{ $self->{htype} };
 }
 
 sub _hashers {
   my ($self) = @_;
-  $self->{_hasher} ||= [ map { Digest::SHA->new($_) } $self->_htype ];
+  $self->{_hasher} ||= [ map { Digest::SHA->new($_) } $self->_htype_add ];
   return @{ $self->{_hasher} };
 }
 
