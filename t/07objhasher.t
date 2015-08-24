@@ -158,14 +158,15 @@ sub main {
     is_deeply({ $H2->header_txt }, $T->{h2_text}, "H2 text");
 
     my $L;
-    my $oflow = 9357;
+    my $oflow = 9356;
+    my $oflow_len = 20 + $oflow * 32;
     my $H3 = $OH->new(%OK, htype => [ gitsha1 => ('sha256') x $oflow ]);
     like(tryerr { $L = __LINE__; $H3->header_bin },
-	 qr{^ERR:Overflowed uint16 on header field rowlen=>299444 at \Q$0 line $L.},
+	 qr{^ERR:Overflowed uint16 on header field rowlen=>$oflow_len at \Q$0 line $L.},
 	 "H3 row: short overflow");
     $H3 = $OH->new(%OK, htype => [ gitsha1 => ('sha256') x ($oflow+1) ]);
     like(tryerr { $L = __LINE__; $H3->header_bin },
-	 qr{^ERR:Overflowed uint16 on header field hdrlen=>65537 at \Q$0 line $L.},
+	 qr{^ERR:Overflowed uint16 on header field hdrlen=>65538 at \Q$0 line $L.},
 	 "H3 hdr: short overflow");
   };
 
@@ -214,7 +215,7 @@ sub main {
     my $AB = 0x4142;
     my $VSN = App::Git::StrongHash->VERSION;
     like(tryerr { $OH->header_bin2txt("$out{magic}ABCD") },
-	 qr{^ERR:Bad file version $AB, only 1 known by code v$VSN at \Q$0 line}, "bad filev");
+	 qr{^ERR:Bad file version $AB, only 1 2 known by code v$VSN at \Q$0 line}, "bad filev");
   };
 
   subtest layer_check => sub {

@@ -71,7 +71,6 @@ Based on my interpretation of this, informed by many articles (references now lo
 
 * [ ] The licence!  Either GPLv3 (my prejudice) or same-terms-as-Git, undecided.
 * [ ] Iterator for digestfile body --> are these commits present? --> if yes, are their trees and blobs?
-* [ ] htypes list written to digestfile header should contain 'gitsha1' for clarity
 * [ ] Iterator for treeful of digestfiles
 * [ ] Support submodule (commit object in tree).  `TODO: Ignoring submodule \'160000 commit 34570e3bd4ef302f7eefc5097d4471cdcec108b9 - test-data\' at ...`
 * [ ] Teach App::Git::StrongHash::Objects to subtract already-hashed objects
@@ -84,7 +83,8 @@ git grep -nE 'TO[D]O' | perl -i -e 'undef $/; $todo=<STDIN>; $todo =~ s{^README.
 ```
 ## in-source
 ```
-lib/App/Git/StrongHash/ObjHasher.pm:283:     comment => 'n/c', # TODO: add API for optional comment
+lib/App/Git/StrongHash/DfLister.pm:24:TODO: Extend args.  May need to index by another column.  May want to index only commits.
+lib/App/Git/StrongHash/ObjHasher.pm:296:     comment => 'n/c', # TODO: add API for optional comment
 lib/App/Git/StrongHash/Objects.pm:99:TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
 lib/App/Git/StrongHash/Objects.pm:101:TODO: should find topdir, and check it's actually a git_dir
 lib/App/Git/StrongHash/Objects.pm:103:TODO: consider git rev-list instead, sure to be faster, probably better control of commit boundaries
@@ -94,17 +94,16 @@ lib/App/Git/StrongHash/Objects.pm:186:    # TODO:OPT not sure we need all this d
 lib/App/Git/StrongHash/Objects.pm:208:TODO:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
 lib/App/Git/StrongHash/Objects.pm:219:  my %treeci_ignored; # TODO: delete later
 lib/App/Git/StrongHash/Objects.pm:240:        warn "TODO: Ignoring submodule '$mode $type $gitsha1 $size $name'\n"
-lib/App/Git/StrongHash/Objects.pm:259:# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
-lib/App/Git/StrongHash/Objects.pm:260:# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
-lib/App/Git/StrongHash/Objects.pm:261:# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
-lib/App/Git/StrongHash/Objects.pm:275:  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
-lib/App/Git/StrongHash/Objects.pm:351:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
+lib/App/Git/StrongHash/Objects.pm:273:# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
+lib/App/Git/StrongHash/Objects.pm:274:# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
+lib/App/Git/StrongHash/Objects.pm:275:# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
+lib/App/Git/StrongHash/Objects.pm:289:  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
+lib/App/Git/StrongHash/Objects.pm:385:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
 lib/App/Git/StrongHash/Piperator.pm:41:# TODO: new_later : defer via a Laterator
 lib/App/Git/StrongHash/Piperator.pm:42:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
-t/08catfile.t:44:      local $TODO = 'early _cleanup would be nice';
-t/08catfile.t:67:    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
-t/08catfile.t:74:  local $TODO = 'L8R';
-t/09reader.t:17:  local $TODO = 'what next?'; fail('hmmm');
+t/08catfile.t:45:      local $TODO = 'early _cleanup would be nice';
+t/08catfile.t:68:    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
+t/08catfile.t:76:  local $TODO = 'L8R';
 ```
 
 # Contributing

@@ -34,8 +34,8 @@ ciid:
 to_header:
   text:
     magic: GitStrngHash
-    filev: 1
-    hdrlen: 57
+    filev: 2
+    hdrlen: 65
     rowlen: 184
     nci: 1
     nobj: 1
@@ -54,15 +54,16 @@ to_header:
       - comment
     _pack: a12 n5 Z* Z* Z*
   bin: |
-    00000000  47 69 74 53 74 72 6e 67  48 61 73 68 00 01 00 39  |GitStrngHash...9|
-    00000010  00 b8 00 01 00 01 30 2e  30 31 00 73 68 61 31 2c  |......0.01.sha1,|
-    00000020  73 68 61 32 35 36 2c 73  68 61 33 38 34 2c 73 68  |sha256,sha384,sh|
-    00000030  61 35 31 32 00 6e 2f 63  00                       |a512.n/c.|
-    00000039
+    00000000  47 69 74 53 74 72 6e 67  48 61 73 68 00 02 00 41  |GitStrngHash...A|
+    00000010  00 b8 00 01 00 01 30 2e  30 31 00 67 69 74 73 68  |......0.01.gitsh|
+    00000020  61 31 2c 73 68 61 31 2c  73 68 61 32 35 36 2c 73  |a1,sha1,sha256,s|
+    00000030  68 61 33 38 34 2c 73 68  61 35 31 32 00 6e 2f 63  |ha384,sha512.n/c|
+    00000040  00                                                |.|
+    00000041
   h2_text:
     magic: GitStrngHash
-    filev: 1
-    hdrlen: 38
+    filev: 2
+    hdrlen: 46
     rowlen: 52
     nci: 64
     nobj: 1024
@@ -92,8 +93,8 @@ from_header:
     blobbytes: 20480
   out:
     magic: GitStrngHash
-    filev: 1
-    hdrlen: 45
+    filev: 2
+    hdrlen: 53
     rowlen: 116
     nci: 293
     nobj: 3056

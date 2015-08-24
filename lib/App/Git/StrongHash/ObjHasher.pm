@@ -69,7 +69,7 @@ sub new {
 }
 
 sub _minimal { # suitable for new
-  (htype => ['sha256'], nci => 0, nobj => 1);
+  (htype => [qw[ gitsha1 sha256 ]], nci => 0, nobj => 1);
 }
 
 sub _init {
@@ -77,7 +77,7 @@ sub _init {
 
   # Take the config
   my @htype = @{ delete $info{htype} || [] };
-  shift @htype if $htype[0] eq 'gitsha1'; # TODO:HTYPE remove later, we want it in the header
+  shift @htype if @htype && $htype[0] eq 'gitsha1'; # TODO:HTYPE remove later, we want it in the header
   $self->{htype} = \@htype;
 
   foreach my $key (qw( nci nblob nobj blobbytes )) {
