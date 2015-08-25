@@ -55,6 +55,11 @@ sub new {
   return $self;
 }
 
+
+=head1 OBJECT METHODS
+
+=cut
+
 sub _ids_dump {
   my ($self) = @_;
   my $iter_in = delete $self->{gitsha1s}
