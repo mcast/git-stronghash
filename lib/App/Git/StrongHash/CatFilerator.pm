@@ -16,7 +16,7 @@ App::Git::StrongHash::CatFilerator - "git cat-file" into an ObjHasher
 
 =head1 DESCRIPTION
 
-A specialise L<App::Git::StrongHash::Piperator> for use between
+A specialised L<App::Git::StrongHash::Piperator> for use between
 L<App::Git::StrongHash::Objects> and
 L<App::Git::StrongHash::ObjHasher>.
 

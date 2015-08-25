@@ -15,7 +15,7 @@ use Local::TestUtil qw( tryerr );
 
 sub main {
   my ($repo, $rci, $robj) = find_big_repo(10_000, 100_000);
-  plan skip_all => 'need a "large" sibling repository' unless $repo;
+  plan skip_all => 'need a "large" sibling repository' unless $repo && -d $repo;
   plan tests => 3;
   note "using big repo = $repo";
 
