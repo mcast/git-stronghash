@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use Try::Tiny;
+use Carp;
 
 use App::Git::StrongHash::CatFilerator;
 
@@ -21,11 +22,20 @@ Used by L<App::Git::StrongHash::Objects> to scan trees.
 =head2 new($repo, $treeh, $blobh)
 
 Use the $repo to create L<App::Git::StrongHash::CatFilerator>s to
-stream objects out.  There may be several of these in sequence.
+stream objects out, per L</scantrees> call.
 
-Scanned trees' gitsha1s are added to C<keys %$treeh>, values undef.
-Blobs discovered are added to C<<$blobh->{$gitsha1} = $bytesize>>.
-Trees which already C<exist> are not scanned.
+=over 3
+
+=item * Scanned trees' gitsha1s are added to C<keys %$treeh>, values
+undef.
+
+=item * Blobs discovered are added to C<<$blobh->{$gitsha1} = $bytesize>>.
+
+Except we don't ask for the blob sizes, so we're leaving them undef.
+
+=item * Trees which already C<exist> are not scanned.
+
+=back
 
 Returns the object.  No subprocess is started yet.
 
@@ -46,21 +56,42 @@ sub new {
 
 =head2 scantrees($gitsha1s_seed)
 
-Scan the given tree gitsha1s.  It should be an ARRAYref of hex
-gitsha1s, whose contents may be emptied or changed.
+Scan the given tree gitsha1s.
+
+$gitsha1s_seed should be an ARRAYref of hex gitsha1s for trees.  The
+list contents may be emptied or changed.
+
+Returns a list of tree gitsha1 that have been discovered but not yet
+scanned.
 
 =cut
 
 sub scantrees {
   my ($self, $trees) = @_;
   my $repo = $self->{repo};
+  my $blobh = $self->{blobh};
+  my $treeh = $self->{treeh};
+  for (my $i=0; $i<@$trees; $i++) {
+    next unless exists $treeh->{ $trees->[$i] };
+    splice @$trees, $i, 1;
+    $i--;
+  }
+  my @scan = @$trees;
   my $treesi = App::Git::StrongHash::Listerator->new($trees);
   my $cfi = App::Git::StrongHash::CatFilerator->new
     ($repo, $self, $treesi, 'endfile');
+  my %scan_later;
   while (my ($n) = $cfi->nxt) {
-    # $n
+    # $n is output of L</endfile>
+    my ($newblobs, $newtrees) = @$n;
+    @{$blobh}{ @$newblobs } = (); # we don't know bloblengths
+    @scan_later{ @$newtrees } = ();
   }
+  @{$treeh}{@scan} = ();
+  delete @scan_later{ keys %$treeh };
+  return keys %scan_later;
 }
+
 
 =head1 OBJECT METHODS, AS HASHER
 
@@ -82,7 +113,53 @@ recently declared L</newfile>.
 The parent CatFilerator notifies us of the end of the Git object, and
 expects a return value to pass back from its L</nxt>.
 
+This decodes the binary tree object.  The logic is here because C<git
+ls-tree> has no --batch mode, while C<git cat-file> does.  It may be a
+liability...
 
+=cut
+
+sub newfile {
+  my ($self, $type, $size, $gitsha1) = @_;
+  confess "require tree, got $type $gitsha1" unless $type eq 'tree';
+  $self->{obj} = '';
+  $self->{tree} = $gitsha1; # for messages
+  return;
+}
+
+sub add {
+  my ($self, $blk) = @_;
+  $self->{obj} .= $blk;
+  return;
+}
+
+sub endfile {
+  my ($self) = @_;
+  my $obj = delete $self->{obj};
+  my (@blob, @tree);
+  while ($obj =~ m{\G(\d{5,6})([^\x00]+)\x00(.{20})}cgs) {
+    my ($mode, $leaf, $binid) = ($1, $2, $3);
+    my $hexid = unpack('H40', $binid);
+    if ($mode =~ /^100(?:644|755)$/) {
+      push @blob, $hexid;
+    } elsif ($mode =~ /^0?40000$/) {
+      push @tree, $hexid;
+    } elsif ($mode eq '160000') {
+      warn "TODO: Ignoring submodule '$mode commit $hexid $leaf'\n"
+	unless $self->{treeci_ignored}{"$hexid:$leaf"}++;
+    } else {
+      my $tree = $self->{tree};
+      die "Unknown object mode '$mode $leaf $hexid' in $tree";
+    }
+  }
+  my $p = pos($obj);
+  my $l = length($obj);
+  if ($p != $l) {
+    my $tree = $self->{tree};
+    confess "Parse fail on tree $tree at offset $p of $l";
+  }
+  return [ \@blob, \@tree ];
+}
 
 
 1;
