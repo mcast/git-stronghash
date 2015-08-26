@@ -55,6 +55,19 @@ Based on my interpretation of this, informed by many articles (references now lo
     * Naturally, any new timestamp signatures made with new hashes cannot be backdated to match the age of the weakening ones.
     * Refreshing the hash type while the old one is merely suspect, rather than known to be broken, might lend some weight to the old signature files.  They would demonstrably (by the new hash) have been in existence at that point in time before public attacks were known on the old hash.
 
+## Advantages
+* Simple design
+* Retro-fit to any Git repo, or probably any other hash-based object storage system.
+* No need to change commitids, ever.
+* When properly integrated, should free the object store from many of the obvious security concerns with ageing hash algorithms.
+* No window for "tricked into using older weaker protocol" attacks.
+
+## Disadvantages
+* Not integrated with Git core, except by whatever hooks may be available.
+* Security is given to history "later", not during push of individual commits.
+* Performance isn't going to be great until some parts are replaced.
+* It is possible to construct a commit (of >65535 new objects) which cannot be stored in one digestfile.  (The limit could be removed by declaring 0xFFFF as unbounded, but then indexing such files becomes a special case.)
+
 ## Current state
 
 * [0.01](https://github.com/mcast/git-stronghash/releases/tag/0.01) can [dump a file](https://github.com/mcast/git-stronghash/commit/56b081522d854be9084470b23ad72880a35723cd) containing SHA-256es of everything in this project so far.  I [got it signed](http://virtual-notary.org/log/ac20e7eb-b833-4b59-92e9-9ef069e63373/) manually.
