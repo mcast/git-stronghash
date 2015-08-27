@@ -221,19 +221,23 @@ sub add_trees {
     values %{ $self->{ci_tree} };
   my $scanner = App::Git::StrongHash::TreeAdder->new($self, $trees, $blobs);
   while (@treeq) {
+my $n = @treeq; print STDERR " # About to scan $n trees...\n";
     @treeq = $scanner->scantrees(\@treeq);
   }
 
   # Now fill in sizes of blobs
   my ($fh, $filename) = tempfile('gitblobids.txt.XXXXXX', TMPDIR => 1);
+my $n = 0;
   {
     local $\ = "\n"; # ORS
     while (my ($id, $size) = each %$blobs) {
       next if defined $size;
       print {$fh} $id or die "printing to $filename: $!";
+$n++;
     }
     close $fh or die "closing $filename: $!";
   }
+print STDERR " # List sizes for $n blobs...\n";
   my $sizer = $self->_git(qw( cat-file --batch-check ));
   $sizer->start_with_STDIN($filename);
   $sizer = App::Git::StrongHash::Regexperator->new
