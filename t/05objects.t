@@ -153,12 +153,11 @@ sub main {
     is(scalar @w,
        1 # test-data
        + 2 # new test-data, test-data-no-tags
-       + 2 # moved to t/testrepo/
        , "warn count")
       or note explain { w=> \@w };
     foreach my $w (@w) {
       like($w,
-	   qr{^TO[D]O: Ignoring submodule '160000 commit $smv_re - (t/testrepo/)?test-data(?:-no-tags)?'$},
+	   qr{^TO[D]O: Ignoring submodule '160000 commit $smv_re \.\.\./test-data(?:-no-tags)?'$},
 	   "submodule warn");
     }
   };

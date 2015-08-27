@@ -151,7 +151,7 @@ sub endfile {
     } elsif ($mode eq '120000') {
       push @blob, $hexid; # symlink
     } elsif ($mode eq '160000') {
-      warn "TODO: Ignoring submodule '$mode commit $hexid $leaf'\n"
+      warn "TODO: Ignoring submodule '$mode commit $hexid .../$leaf'\n"
 	unless $self->{treeci_ignored}{"$hexid:$leaf"}++;
     } else {
       my $tree = $self->{tree};
