@@ -6,6 +6,7 @@ use List::Util qw( sum );
 use YAML qw( LoadFile Dump );
 use Test::More;
 use Cwd 'cwd';
+use Test::Differences;
 
 use App::Git::StrongHash::Objects;
 
@@ -19,8 +20,8 @@ sub cmpobj {
   ($GURU_CHECKED) = LoadFile("$0.yaml") unless $GURU_CHECKED;
   my $want = $GURU_CHECKED->{$wantname}
     or warn "Missing guru_checked entry '$wantname' in $0.yaml";
-  my $ok = is_deeply($got, $want, $wantname.$morename);
-  diag Dump({ got => $got, want => $want, wantname => $wantname.$morename })
+  my $ok = eq_or_diff($got, $want, $wantname.$morename);
+  diag Dump({ got => $got, wantname => $wantname.$morename })
     unless $ok;
   return $ok;
 }
@@ -29,6 +30,7 @@ sub main {
   my $testrepo = testrepo_or_skip();
   my $testrepo_notags = testrepo_or_skip("-no-tags");
   plan tests => 8;
+  unified_diff();
 
   my $repo;
   my $RST = sub { $repo = App::Git::StrongHash::Objects->new($testrepo) };

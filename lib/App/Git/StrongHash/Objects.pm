@@ -2,13 +2,15 @@ package App::Git::StrongHash::Objects;
 use strict;
 use warnings;
 
+use File::Temp 'tempfile';
+use Carp;
+
 use App::Git::StrongHash::Piperator;
 use App::Git::StrongHash::CatFilerator;
 use App::Git::StrongHash::Listerator;
 use App::Git::StrongHash::ObjHasher;
 use App::Git::StrongHash::TreeAdder;
-
-use Carp;
+use App::Git::StrongHash::Regexperator;
 
 
 =head1 NAME
@@ -120,7 +122,7 @@ sub _git {
   my $nulz = (@arg && $arg[0] eq '-z:') ? shift @arg : 0;
   if (@arg) {
     my $iter = App::Git::StrongHash::Piperator->new(@cmd, @arg);
-    $iter->irs("\x00") if $nulz;
+    $iter->irs($nulz ? "\x00" : "\n");
     return $iter;
   } else {
     return @cmd;
@@ -222,7 +224,25 @@ sub add_trees {
     @treeq = $scanner->scantrees(\@treeq);
   }
 
-#	  $blobs->{$gitsha1} = $size; # TODO: populate the sizes, if we're going to use them.  But probably each requires peeking an object, so much seeking around.
+  # Now fill in sizes of blobs
+  my ($fh, $filename) = tempfile('gitblobids.txt.XXXXXX', TMPDIR => 1);
+  {
+    local $\ = "\n"; # ORS
+    while (my ($id, $size) = each %$blobs) {
+      next if defined $size;
+      print {$fh} $id or die "printing to $filename: $!";
+    }
+    close $fh or die "closing $filename: $!";
+  }
+  my $sizer = $self->_git(qw( cat-file --batch-check ));
+  $sizer->start_with_STDIN($filename);
+  $sizer = App::Git::StrongHash::Regexperator->new
+    ($sizer, qr{^([0-9a-f]{40}) blob (\d+)\n},
+     'unexpected output from "git cat-file --batch-check of blobs"');
+  while (my ($n) = $sizer->nxt) {
+    my ($objid, $size) = @$n;
+    $blobs->{$objid} = $size;
+  }
 
   return $self;
 }
