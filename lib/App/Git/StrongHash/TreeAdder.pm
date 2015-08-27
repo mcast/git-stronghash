@@ -137,7 +137,7 @@ sub endfile {
   my ($self) = @_;
   my $obj = delete $self->{obj};
   my (@blob, @tree);
-  while ($obj =~ m{\G(\d{5,6})([^\x00]+)\x00(.{20})}cgs) {
+  while ($obj =~ m{\G(\d{5,6}) ([^\x00]+)\x00(.{20})}cgs) {
     my ($mode, $leaf, $binid) = ($1, $2, $3);
     my $hexid = unpack('H40', $binid);
     if ($mode =~ /^100(?:644|755)$/) {
