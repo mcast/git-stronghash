@@ -205,7 +205,7 @@ sub tt_kidcrash {
     $prog_dne =~ $prog_dne_re;
   $run_warn =~ s{\\(.)}{$1}g; # un-quotemeta
   like($run_warn,
-       qr{^warn: Can't exec "/does/not/exist": No such file or directory at \S*blib/lib/App/Git/StrongHash/CatFilerator.pm line \d+\.$},
+       qr{^warn: Can't exec "/does/not/exist": No such file or directory at \S*blib/lib/App/Git/StrongHash/Piperator.pm line \d+\.$},
        'run /d/n/e post-exec warn');
   like(tryerr { my @n = $CF->nxt; $n[0] },
        qr{^ERR:command returned 1 in '/does/not},

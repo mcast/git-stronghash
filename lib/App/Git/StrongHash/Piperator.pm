@@ -4,6 +4,7 @@ use warnings;
 
 use Carp;
 use Try::Tiny;
+use POSIX ();
 
 use parent 'App::Git::StrongHash::Iterator';
 
@@ -72,7 +73,8 @@ sub started {
 
 =head2 start()
 
-Run the process and open the pipe from it.  Returns self.
+Run the process and open the pipe from it.  Returns $self in the
+parent.
 
 =cut
 
@@ -90,6 +92,47 @@ sub start {
   @{$self}{qw{ pid fh }} = ($pid, $fh);
   return $self;
 }
+
+
+=head2 start_with_STDIN($fn)
+
+Run the process as in L</start>, but pipe the named file to its STDIN.
+Returns $self in the parent.
+
+=cut
+
+sub start_with_STDIN {
+  my ($self, $fn) = @_;
+
+  $self->{pid} = 0; # make 'started' true
+  my $pid = open my $fh, '-|';
+  if (!defined $pid) {
+    $self->fail("fork failed: $!");
+  } elsif ($pid) {
+    # parent
+    binmode $fh or croak "binmode pipe from fork: $!";
+    @{$self}{qw{ pid fh }} = ($pid, $fh);
+    return $self;
+  } else {
+    $self->_child_stdin($fn, @{ $self->{cmd} });
+    # no return
+  }
+}
+
+sub _child_stdin {
+  my ($self, $fn, @cmd) = @_;
+  # the uncoverables: I covered them, but Devel::Cover doesn't see it..?
+  if (open STDIN, '<', $fn) { # uncoverable branch false
+    exec @cmd;
+    # perl issues warning on fail
+  } else {
+    warn "open $fn to STDIN: $!"; # uncoverable statement
+  }
+  close STDOUT; # uncoverable statement
+  close STDERR; # uncoverable statement
+  POSIX::_exit(1); # uncoverable statement
+}
+
 
 =head2 fail($msg)
 

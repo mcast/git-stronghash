@@ -2,7 +2,6 @@ package App::Git::StrongHash::CatFilerator;
 use strict;
 use warnings;
 
-use POSIX ();
 use Carp;
 use Try::Tiny;
 use File::Temp 'tempfile';
@@ -93,34 +92,7 @@ sub start {
   my ($self) = @_;
   my $objlist = $self->_ids_fn;
   confess "read gitsha1s_fn: too late" unless defined $objlist;
-
-  $self->{pid} = 0; # make 'started' true
-  my $pid = open my $fh, '-|';
-  if (!defined $pid) {
-    $self->fail("fork failed: $!");
-  } elsif ($pid) {
-    # parent
-    binmode $fh or croak "binmode pipe from fork: $!";
-    @{$self}{qw{ pid fh }} = ($pid, $fh);
-    return $self;
-  } else {
-    $self->_child($objlist, @{ $self->{cmd} });
-    # no return
-  }
-}
-
-sub _child {
-  my ($self, $fn, @cmd) = @_;
-  # the uncoverables: I covered them, but Devel::Cover doesn't see it..?
-  if (open STDIN, '<', $fn) { # uncoverable branch false
-    exec @cmd;
-    # perl issues warning on fail
-  } else {
-    warn "open $fn to STDIN: $!"; # uncoverable statement
-  }
-  close STDOUT; # uncoverable statement
-  close STDERR; # uncoverable statement
-  POSIX::_exit(1); # uncoverable statement
+  return $self->start_with_STDIN($objlist);
 }
 
 
