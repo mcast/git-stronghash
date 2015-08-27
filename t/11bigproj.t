@@ -41,7 +41,7 @@ sub main {
       sub { my $msg = "@_"; warn $msg unless $msg =~ /^TODO:/ };
     local $SIG{ALRM} =
       sub { die "Timeout!  We don't have all day for this test" };
-    alarm(60);
+    alarm(120);
     $addt->('start');
     foreach my $mth (qw( add_tags add_commits add_trees )) {
       $OL->$mth;
@@ -71,8 +71,6 @@ sub find_big_repo {
   @whitelist{qw{ rust irods linux homebrew }} = ();
   @poss = grep { exists $whitelist{$_} } @poss;
   @poss = shuffle @poss;
-
-  return ("../rust-playpen", [], []);
 
   foreach my $r (map {"$parent/$_"} @poss) {
     my @ci = qx{ cd $r && git rev-list --all };

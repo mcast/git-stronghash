@@ -14,12 +14,15 @@ use Local::TestUtil qw( tryerr );
 sub main {
   plan tests => 1;
 
-  subtest endfile => \&tt_endfile;
+  subtest hasher => \&tt_hasher;
 
   return 0;
 }
 
-sub tt_endfile {
+
+sub tt_hasher {
+  plan tests => 8;
+
   my %tree;
   my %blob;
   my $O = App::Git::StrongHash::Objects->new('.');
@@ -27,7 +30,9 @@ sub tt_endfile {
 
   my @warn;
   my $feed_tree = sub {
-    local @{$TA}{qw{ tree obj }} = @_;
+    my ($name, $tree) = @_;
+    $TA->newfile(tree => length($tree), $name);
+    $TA->add($tree);
     local $SIG{__WARN__} = sub { push @warn, "@_" };
     return tryerr { $TA->endfile };
   };
@@ -58,12 +63,20 @@ sub tt_endfile {
   is("@warn", "", "warn(0)");
   @warn = ();
 
-  is_deeply($feed_tree->(subrep => "160000 testrepo\x00::::::::::::::::::::040000 t\x00===================="),
-	     [ [], [qw[ 3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d ]] ],
+  is_deeply($feed_tree->(subrep =>
+			 "160000 testrepo\x00::::::::::::::::::::".
+			 "040000 t\x00====================".
+			 "120000 linky\x00>>>>>>>>>>>>>>>>>>>>".
+			 "160000 testrepo\x00::::::::::::::::::::"),
+	    [ [qw[ 3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e ]],
+	      [qw[ 3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d ]] ],
 	    'subrepo');
   is("@warn",
      "TODO: Ignoring submodule '160000 commit 3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a testrepo'\n",
      "warn(1)");
+
+  like(tryerr { $TA->newfile(blob => 1024, "beef") },
+       qr{^ERR:require tree, got blob beef at \S+/TreeAdder\.pm line \d+\.\n\s+\S+::newfile\(.*\) called at \Q$0 line}, 'non-tree confess');
 
   return;
 }

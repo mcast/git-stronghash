@@ -5,6 +5,7 @@ use warnings;
 use Try::Tiny;
 use Carp;
 
+use App::Git::StrongHash::Listerator;
 use App::Git::StrongHash::CatFilerator;
 
 
@@ -46,6 +47,7 @@ sub new {
   my $self =
     { repo => $repo,
       treeh => $treeh,
+      treeci_ignored => {}, # TODO: delete later
       blobh => $blobh };
   bless $self, $class;
   return $self;
@@ -136,6 +138,8 @@ sub add {
 sub endfile {
   my ($self) = @_;
   my $obj = delete $self->{obj};
+  my $l = length($obj);
+  return [ [], [] ] if $l == 0;
   my (@blob, @tree);
   while ($obj =~ m{\G(\d{5,6}) ([^\x00]+)\x00(.{20})}cgs) {
     my ($mode, $leaf, $binid) = ($1, $2, $3);
@@ -144,6 +148,8 @@ sub endfile {
       push @blob, $hexid;
     } elsif ($mode =~ /^0?40000$/) {
       push @tree, $hexid;
+    } elsif ($mode eq '120000') {
+      push @blob, $hexid; # symlink
     } elsif ($mode eq '160000') {
       warn "TODO: Ignoring submodule '$mode commit $hexid $leaf'\n"
 	unless $self->{treeci_ignored}{"$hexid:$leaf"}++;
@@ -153,7 +159,6 @@ sub endfile {
     }
   }
   my $p = pos($obj);
-  my $l = length($obj);
   if ($p != $l) {
     my $tree = $self->{tree};
     confess "Parse fail on tree $tree at offset $p of $l";

@@ -6,6 +6,7 @@ use App::Git::StrongHash::Piperator;
 use App::Git::StrongHash::CatFilerator;
 use App::Git::StrongHash::Listerator;
 use App::Git::StrongHash::ObjHasher;
+use App::Git::StrongHash::TreeAdder;
 
 use Carp;
 
@@ -216,43 +217,13 @@ sub add_trees {
   my @treeq =
     grep { !exists $trees->{$_} }
     values %{ $self->{ci_tree} };
-  my %treeci_ignored; # TODO: delete later
-
+  my $scanner = App::Git::StrongHash::TreeAdder->new($self, $trees, $blobs);
   while (@treeq) {
-    my %scanned;
-    @scanned{ splice @treeq } = ();
-    my $ls_tree = $self->_git_many([qw[ -z: ls-tree -r -t -l --full-tree -z ]], 1, keys %scanned)->
-      # mcra@peeplet:~/gitwk-github/git-stronghash/test-data/d1$ git ls-tree -r -t -l --full-tree -z ae5349e7 | perl -pe 's/\x00/\n/g'
-      # 040000 tree 5c1e1d7e049f5201eff7c3ca43c405f38564b949       -	d2
-      # 100644 blob 03c56aa7f2f917ff2c24f88fd1bc52b0bab7aa17      12	d2/shopping.txt
-      # 100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391       0	mtgg
-      # 100644 blob f00c965d8307308469e537302baa73048488f162      21	ten
-      iregex(qr{^\s*([0-7]{6}) (tree|blob|commit) ([0-9a-f]+)\s+(-|\d+)\t(.+)\x00},
-	     "Can't read lstree(mode,type,gitsha1,size,name)");
-    while (my ($nxt) = $ls_tree->nxt) {
-      my ($mode, $type, $gitsha1, $size, $name) = @$nxt;
-      # type: tree | blob, via regex
-      if ($type eq 'tree') {
-	# no need to scan, existing "git ls-tree -r" is already
-	$scanned{$gitsha1} = undef;
-
-      } elsif ($type eq 'commit') {
-        warn "TODO: Ignoring submodule '$mode $type $gitsha1 $size $name'\n"
-          unless $treeci_ignored{"$gitsha1:$name"}++;;
-
-      } else {
-	if ($type eq 'blob') { # uncoverable branch false (last case, weird structure for 'impossible')
-
-	  $blobs->{$gitsha1} = $size;
-	
-	} else {
-	  die "ls-tree gave me unexpected $type"; # uncoverable statement
-	  # and the iregex let it through
-	}
-      }
-    }
-    @{$trees}{ keys %scanned } = ();
+    @treeq = $scanner->scantrees(\@treeq);
   }
+
+#	  $blobs->{$gitsha1} = $size; # TODO: populate the sizes, if we're going to use them.  But probably each requires peeking an object, so much seeking around.
+
   return $self;
 }
 
@@ -400,14 +371,17 @@ returned by L</iter_blob>.
 Tells nothing of the size of tags, commits or trees; these are
 presumed to be "small".
 
+Total_byte_size is now most likely undef, since switching to
+L<App::Git::StrongHash::TreeAdder>.
+
 =cut
 
 sub blobtotal {
   my ($self) = @_;
   my $blobs = $self->{blob};
-  my ($num, $tot) = (0, 0);
+  my ($num, $tot) = (0);
   while (my (undef, $size) = each %$blobs) {
-    $tot += $size;
+    $tot += $size if defined $size;
     $num ++;
   }
   return wantarray ? ($tot, $num) : $tot;
