@@ -9,6 +9,8 @@ use YAML qw( Load );
 use lib 't/lib';
 use Local::TestUtil qw( testrepo_or_skip bin2hex cover_script );
 
+use App::StrongHash::Git; # for the benefit of 00compile.t
+
 
 sub main {
   my $testrepo = testrepo_or_skip();

@@ -65,9 +65,15 @@ sub main {
   is_deeply(\@use, \@mod_s, "test use'd vs. mods named")
     or diag explain { listed_for_00 => \@mod_s, tested => \@use, in_testfiles => \@t };
 
-  { local $TODO = 'rsn'; fail('check A:SH:: does not refer to A:SH:G::'); }
+  my @gitty = grep { /:Git:/ } map { nl($_ => slurp($_)) } # source line matching,
+    grep { ! m{/Git(/|\.pm$)} } values %seenmod; # among files not titled .../Git/...
+  chomp @gitty;
+  is(scalar @gitty, 0, "App::StrongHash:: modules mentioning App::StrongHash::Git::")
+    or note explain { gitty => \@gitty };
+
   return 0;
 }
+
 
 sub run_absolute {
   my $abs = abs_path($0);
@@ -83,6 +89,15 @@ sub run_absolute {
       if "@ARGV" =~ /recursing/;
     exec($^X, $abs, "--recursing", @ARGV) unless $abs eq $0;
   }
+}
+
+sub nl {
+  my ($fn, @line) = @_;
+  for (my $i=0; $i<@line; $i++) {
+    my $n = $i + 1;
+    $line[$i] = "$fn:$n:$line[$i]";
+  }
+  return @line;
 }
 
 

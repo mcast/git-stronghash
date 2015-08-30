@@ -1,13 +1,14 @@
 # (cd lib; find -name '*.pm' -type f)
 App/StrongHash.pm
-App/StrongHash/Git/CatFilerator.pm
 App/StrongHash/DfLister.pm
 App/StrongHash/DigestReader.pm
+App/StrongHash/Git.pm
+App/StrongHash/Git/CatFilerator.pm
+App/StrongHash/Git/Objects.pm
+App/StrongHash/Git/TreeAdder.pm
 App/StrongHash/Iterator.pm
 App/StrongHash/Listerator.pm
 App/StrongHash/ObjHasher.pm
-App/StrongHash/Git/Objects.pm
 App/StrongHash/Penderator.pm
 App/StrongHash/Piperator.pm
 App/StrongHash/Regexperator.pm
-App/StrongHash/Git/TreeAdder.pm

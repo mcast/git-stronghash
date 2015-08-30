@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 use Test::More;
 
 use App::StrongHash::DigestReader;
+use App::StrongHash::Git::Objects;
 
 use lib 't/lib';
 use Local::TestUtil qw( testdigestfile testrepo_or_skip tryerr t_nxt_wantarray );
