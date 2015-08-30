@@ -73,7 +73,10 @@ sub scantrees {
   my $repo = $self->{repo};
   my $blobh = $self->{blobh};
   my $treeh = $self->{treeh};
+  @$trees = sort @$trees;
   for (my $i=0; $i<@$trees; $i++) {
+    my $op = exists $treeh->{ $trees->[$i] } ? 'skip' : 'walk';
+    print " # scantrees: $op $$trees[$i]\n";
     next unless exists $treeh->{ $trees->[$i] };
     splice @$trees, $i, 1;
     $i--;
