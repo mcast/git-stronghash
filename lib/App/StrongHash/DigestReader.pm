@@ -1,16 +1,16 @@
-package App::Git::StrongHash::DigestReader;
+package App::StrongHash::DigestReader;
 use strict;
 use warnings;
 
 use Carp;
-use App::Git::StrongHash::ObjHasher;
+use App::StrongHash::ObjHasher;
 
-use parent 'App::Git::StrongHash::Iterator';
+use parent 'App::StrongHash::Iterator';
 
 
 =head1 NAME
 
-App::Git::StrongHash::DigestReader - read digestfile
+App::StrongHash::DigestReader - read digestfile
 
 
 =head1 CLASS METHODS
@@ -35,7 +35,7 @@ about 11.5 MiB, but there is current no need for random access.
 
 sub new {
   my ($class, $name, $fh) = @_;
-  App::Git::StrongHash::ObjHasher->wantbinmode($fh);
+  App::StrongHash::ObjHasher->wantbinmode($fh);
   my $self = { fh => $fh, name => $name };
   bless $self, $class;
   $self->{nxt} = $self->_nxt_init;
@@ -52,7 +52,7 @@ filehandle in the right place.
 =head2 header()
 
 Reads, caches and returns the header.  Returns the list of (key,
-value) pairs from L<App::Git::StrongHash::ObjHasher/header_bin2txt>.
+value) pairs from L<App::StrongHash::ObjHasher/header_bin2txt>.
 
 =cut
 
@@ -61,7 +61,7 @@ sub header {
   return %{ $self->{header} } if $self->{header};
 
   my $fh = $self->_fh;
-  my %hdr = App::Git::StrongHash::ObjHasher->header_bin2txt($fh);
+  my %hdr = App::StrongHash::ObjHasher->header_bin2txt($fh);
   $self->{header} = \%hdr;
 
   return %hdr;
@@ -98,7 +98,7 @@ sub _nxt_init {
     my $fh = $self->_fh;
     my $rowlen = $hdr{rowlen};
     my $fmt = join ' ',
-      map { App::Git::StrongHash::ObjHasher->packfmt4type($_) }
+      map { App::StrongHash::ObjHasher->packfmt4type($_) }
       @{ $hdr{htype} };
     return $self->_nxt_iter($fh, $rowlen, $fmt)->();
   };

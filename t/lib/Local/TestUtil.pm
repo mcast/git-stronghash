@@ -2,7 +2,7 @@ package Local::TestUtil;
 use strict;
 use warnings FATAL => 'all';
 
-use App::Git::StrongHash::Piperator;
+use App::StrongHash::Piperator;
 
 use Try::Tiny;
 use File::Slurp qw( write_file );
@@ -29,7 +29,7 @@ sub plusNL { [ map {"$_\n"} @_ ] }
 sub mkiter {
   my (@ele) = @_;
   # a simple list iterator would be fine as input, but there isn't one yet
-  return App::Git::StrongHash::Piperator->new($^X, -e => 'foreach my $e (@ARGV) { print "$e\n" }', @ele);
+  return App::StrongHash::Piperator->new($^X, -e => 'foreach my $e (@ARGV) { print "$e\n" }', @ele);
 }
 
 sub detaint {

@@ -1,4 +1,4 @@
-package App::Git::StrongHash::Piperator;
+package App::StrongHash::Piperator;
 use strict;
 use warnings;
 
@@ -6,12 +6,12 @@ use Carp;
 use Try::Tiny;
 use POSIX ();
 
-use parent 'App::Git::StrongHash::Iterator';
+use parent 'App::StrongHash::Iterator';
 
 
 =head1 NAME
 
-App::Git::StrongHash::Piperator - iterator reads from command stdout
+App::StrongHash::Piperator - iterator reads from command stdout
 
 =head1 DESCRIPTION
 

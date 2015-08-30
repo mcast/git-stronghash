@@ -7,7 +7,7 @@ use File::Slurp 'read_dir';
 use List::Util 'shuffle';
 use Time::HiRes qw( gettimeofday tv_interval );
 
-use App::Git::StrongHash::Objects;
+use App::StrongHash::Git::Objects;
 
 use lib 't/lib';
 use Local::TestUtil qw( tryerr );
@@ -24,7 +24,7 @@ sub main {
   cmp_ok($nci,  '>',  10_000, "$repo: nci  =  $nci");
   cmp_ok($nobj, '>', 100_000, "$repo: nobj = $nobj");
 
-  my $OL = App::Git::StrongHash::Objects->new($repo);
+  my $OL = App::StrongHash::Git::Objects->new($repo);
 
   my @t;
   my $addt = sub {

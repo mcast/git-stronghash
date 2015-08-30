@@ -1,15 +1,15 @@
-package App::Git::StrongHash::Listerator;
+package App::StrongHash::Listerator;
 use strict;
 use warnings;
 
 use Carp;
 
-use parent 'App::Git::StrongHash::Iterator';
+use parent 'App::StrongHash::Iterator';
 
 
 =head1 NAME
 
-App::Git::StrongHash::Listerator - list-based iterator
+App::StrongHash::Listerator - list-based iterator
 
 =head1 DESCRIPTION
 
@@ -21,7 +21,7 @@ Iterate a list.
 
 =head2 new(@list)
 
-Create L<App::Git::StrongHash::Iterator> with specified contents.
+Create L<App::StrongHash::Iterator> with specified contents.
 Items will be C<shift>ed off the left.  If a listref is used, no
 copying is done and the pending elements can be modified.
 
@@ -55,7 +55,7 @@ sub nxt {
 
 =head2 dcount()
 
-As for L<App::Git::StrongHash::Iterator/count> but faster.
+As for L<App::StrongHash::Iterator/count> but faster.
 
 =cut
 

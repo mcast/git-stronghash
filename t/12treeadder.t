@@ -4,8 +4,8 @@ use warnings FATAL => 'all';
 
 use Test::More;
 
-use App::Git::StrongHash::Objects;
-use App::Git::StrongHash::TreeAdder;
+use App::StrongHash::Git::Objects;
+use App::StrongHash::Git::TreeAdder;
 
 use lib 't/lib';
 use Local::TestUtil qw( tryerr );
@@ -25,8 +25,8 @@ sub tt_hasher {
 
   my %tree;
   my %blob;
-  my $O = App::Git::StrongHash::Objects->new('.');
-  my $TA = App::Git::StrongHash::TreeAdder->new($O, \%tree, \%blob);
+  my $O = App::StrongHash::Git::Objects->new('.');
+  my $TA = App::StrongHash::Git::TreeAdder->new($O, \%tree, \%blob);
 
   my @warn;
   my $feed_tree = sub {

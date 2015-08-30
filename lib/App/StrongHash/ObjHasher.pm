@@ -1,4 +1,4 @@
-package App::Git::StrongHash::ObjHasher;
+package App::StrongHash::ObjHasher;
 use strict;
 use warnings;
 
@@ -10,12 +10,12 @@ use List::Util qw( sum );
 use Carp;
 # use YAML 'Dump'; # for debug
 
-use App::Git::StrongHash;
+use App::StrongHash;
 
 
 =head1 NAME
 
-App::Git::StrongHash::ObjHasher - multi-algoritm data hashing
+App::StrongHash::ObjHasher - multi-algoritm data hashing
 
 
 =head1 CLASS METHODS
@@ -61,7 +61,7 @@ progress during hashing.
 
 sub new {
   my ($class, %info) = @_;
-  my $self = { code => App::Git::StrongHash->VERSION };
+  my $self = { code => App::StrongHash->VERSION };
   bless $self, $class;
   my @left = $self->_init(%info);
   croak "Rejected unrecognised info (@left)" if @left;
@@ -169,7 +169,7 @@ sub header_bin2txt {
   croak "Bad file magic - is this a 'git stronghash' digests file?"
     unless $magic eq HEADER_MAGIC();
   my @OKVSN = (1, 2);
-  croak "Bad file version $filev, only @OKVSN known by code v".App::Git::StrongHash->VERSION
+  croak "Bad file version $filev, only @OKVSN known by code v".App::StrongHash->VERSION
     unless grep { $_ == $filev } @OKVSN;
 
   if ($hdrlen > length($buf)) {

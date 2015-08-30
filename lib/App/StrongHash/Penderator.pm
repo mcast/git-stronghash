@@ -1,15 +1,15 @@
-package App::Git::StrongHash::Penderator;
+package App::StrongHash::Penderator;
 use strict;
 use warnings;
 
 use Carp;
 
-use parent 'App::Git::StrongHash::Iterator';
+use parent 'App::StrongHash::Iterator';
 
 
 =head1 NAME
 
-App::Git::StrongHash::Penderator - append & prepend iterators
+App::StrongHash::Penderator - append & prepend iterators
 
 =head1 DESCRIPTION
 
@@ -19,7 +19,7 @@ Iterator concatenation.
 
 =head2 new(@iter)
 
-Create L<App::Git::StrongHash::Iterator> with specified sub-iterators
+Create L<App::StrongHash::Iterator> with specified sub-iterators
 concatenated in the given order.
 
 =cut
@@ -34,7 +34,7 @@ sub new {
 
 =head2 nxt()
 
-In list context, call L<App::Git::StrongHash::Iterator/nxt> on the
+In list context, call L<App::StrongHash::Iterator/nxt> on the
 sub-iterators in order until they are empty.
 
 Returns the fetched element, or nothing at the end.

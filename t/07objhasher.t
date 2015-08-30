@@ -8,8 +8,8 @@ use Try::Tiny;
 use YAML qw( LoadFile Dump Load );
 use Test::More;
 
-use App::Git::StrongHash;
-use App::Git::StrongHash::ObjHasher;
+use App::StrongHash;
+use App::StrongHash::ObjHasher;
 
 use lib 't/lib';
 use Local::TestUtil qw( testrepo_or_skip tryerr hex2bin bin2hex fh_on );
@@ -17,7 +17,7 @@ use Local::TestUtil qw( testrepo_or_skip tryerr hex2bin bin2hex fh_on );
 
 sub main {
   my $testrepo = testrepo_or_skip();
-  my $OH = 'App::Git::StrongHash::ObjHasher';
+  my $OH = 'App::StrongHash::ObjHasher';
   my $JUNK_CIID = '0123456789abcdef0123456789abcdef01234567';
   my ($DATA) = LoadFile("$0.yaml");
 
@@ -29,7 +29,7 @@ sub main {
     die "Can't update path $path ($h->{progv})"
       unless $h->{progv} eq 'x.yy_replaced_in_test_code';
     $h->{progv} =
-      App::Git::StrongHash->VERSION;
+      App::StrongHash->VERSION;
   }
 
   is(hex2bin($DATA->{'test-data/ten'}), slurp("$testrepo/ten"), "hex2bin util");
@@ -192,7 +192,7 @@ sub main {
     close $closed;
     my $junked = tryerr {
       local $SIG{__WARN__} = sub {};
-      local $App::Git::StrongHash::ObjHasher::LAX_BINMODE = 1;
+      local $App::StrongHash::ObjHasher::LAX_BINMODE = 1;
       $OH->header_bin2txt($closed);
     };
     like($junked,
@@ -216,7 +216,7 @@ sub main {
     like(tryerr { $OH->header_bin2txt("THE_WRONG_BITES_ARE_USELESS") },
 	 qr{^ERR:Bad file magic.* at \Q$0 line}, "bad magic");
     my $AB = 0x4142;
-    my $VSN = App::Git::StrongHash->VERSION;
+    my $VSN = App::StrongHash->VERSION;
     like(tryerr { $OH->header_bin2txt("$out{magic}ABCD") },
 	 qr{^ERR:Bad file version $AB, only 1 2 known by code v$VSN at \Q$0 line}, "bad filev");
   };
@@ -253,7 +253,7 @@ sub main {
        $fh, "ok");
     binmode $fh, ":crlf" or die $!;
     like(tryerr { $OH->wantbinmode($fh) },
-	 qr{^ERR:Filehandle GLOB\S+ should be in binmode but is .*\bcrlf\b.* at \S+/StrongHash/ObjHasher\.pm line \d+\.\n\s+App::Git::StrongHash::ObjHasher::wantbinmode\(.*\) called at \Q$0\E line},
+	 qr{^ERR:Filehandle GLOB\S+ should be in binmode but is .*\bcrlf\b.* at \S+/StrongHash/ObjHasher\.pm line \d+\.\n\s+App::StrongHash::ObjHasher::wantbinmode\(.*\) called at \Q$0\E line},
 	 "text: confessed");
     close $fh;
     like(tryerr { $OH->wantbinmode($fh) },

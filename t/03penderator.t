@@ -4,7 +4,7 @@ use warnings FATAL => 'all';
 
 use Test::More;
 
-use App::Git::StrongHash::Penderator;
+use App::StrongHash::Penderator;
 
 use lib 't/lib';
 use Local::TestUtil qw( mkiter tryerr plusNL ione t_nxt_wantarray );
@@ -12,7 +12,7 @@ use Local::TestUtil qw( mkiter tryerr plusNL ione t_nxt_wantarray );
 
 sub main {
   plan tests => 5;
-  my $AGSJ = 'App::Git::StrongHash::Penderator';
+  my $ASHP = 'App::StrongHash::Penderator';
 
   my @w;
   local $SIG{__WARN__} = sub {
@@ -29,11 +29,11 @@ sub main {
 	   mkiter(@N[6, 7, 8]));
   };
 
-  my $iter = $AGSJ->new($mki->());
+  my $iter = $ASHP->new($mki->());
   is_deeply([ $iter->collect ], plusNL(@N), "join(3 x 3)");
 
   $mki->();
-  $iter = $AGSJ->new($i[0], $i[1])->append($i[2]);
+  $iter = $ASHP->new($i[0], $i[1])->append($i[2]);
   t_nxt_wantarray($iter);
   is_deeply([ $iter->collect ], plusNL(@N), "join(AB)->append(C)");
 

@@ -2,5 +2,5 @@
 use strict;
 use warnings;
 
-use App::Git::StrongHash;
-exit App::Git::StrongHash->dump;
+use App::StrongHash;
+exit App::StrongHash->dump;

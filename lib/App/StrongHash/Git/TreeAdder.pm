@@ -1,28 +1,28 @@
-package App::Git::StrongHash::TreeAdder;
+package App::StrongHash::Git::TreeAdder;
 use strict;
 use warnings;
 
 use Try::Tiny;
 use Carp;
 
-use App::Git::StrongHash::Listerator;
-use App::Git::StrongHash::CatFilerator;
+use App::StrongHash::Listerator;
+use App::StrongHash::Git::CatFilerator;
 
 
 =head1 NAME
 
-App::Git::StrongHash::TreeAdder - "git cat-file" consumer for trees
+App::StrongHash::Git::TreeAdder - "git cat-file" consumer for trees
 
 =head1 DESCRIPTION
 
-Used by L<App::Git::StrongHash::Objects> to scan trees.
+Used by L<App::StrongHash::Git::Objects> to scan trees.
 
 
 =head1 CLASS METHOD
 
 =head2 new($repo, $treeh, $blobh)
 
-Use the $repo to create L<App::Git::StrongHash::CatFilerator>s to
+Use the $repo to create L<App::StrongHash::Git::CatFilerator>s to
 stream objects out, per L</scantrees> call.
 
 =over 3
@@ -79,8 +79,8 @@ sub scantrees {
     $i--;
   }
   my @scan = @$trees;
-  my $treesi = App::Git::StrongHash::Listerator->new($trees);
-  my $cfi = App::Git::StrongHash::CatFilerator->new
+  my $treesi = App::StrongHash::Listerator->new($trees);
+  my $cfi = App::StrongHash::Git::CatFilerator->new
     ($repo, $self, $treesi, 'endfile');
   my %scan_later;
   while (my ($n) = $cfi->nxt) {
@@ -98,7 +98,7 @@ sub scantrees {
 =head1 OBJECT METHODS, AS HASHER
 
 Thses are called by the internal
-L<App::Git::StrongHash::CatFilerator>.
+L<App::StrongHash::Git::CatFilerator>.
 
 =head2 newfile($type, $size, $gitsha1)
 

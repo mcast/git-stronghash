@@ -1,15 +1,15 @@
-package App::Git::StrongHash::DfLister;
+package App::StrongHash::DfLister;
 use strict;
 use warnings;
 
 use Carp;
 
-use App::Git::StrongHash::DigestReader;
+use App::StrongHash::DigestReader;
 
 
 =head1 NAME
 
-App::Git::StrongHash::DfLister - build set of objectid from digestfile
+App::StrongHash::DfLister - build set of objectid from digestfile
 
 =head1 DESCRIPTION
 
@@ -19,7 +19,7 @@ Iterate the digestfile, keeping the gitsha1s as keys in a hash.
 
 =head2 new(@arg)
 
-C<@arg> are as for L<App::Git::StrongHash::DigestReader>.
+C<@arg> are as for L<App::StrongHash::DigestReader>.
 
 TODO: Extend args.  May need to index by another column.  May want to index only commits.
 
@@ -27,7 +27,7 @@ TODO: Extend args.  May need to index by another column.  May want to index only
 
 sub new {
   my ($class, @arg) = @_;
-  my $dfr = App::Git::StrongHash::DigestReader->new(@arg);
+  my $dfr = App::StrongHash::DigestReader->new(@arg);
   my $self = { dfr => $dfr };
   bless $self, $class;
   return $self;

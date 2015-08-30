@@ -1,4 +1,4 @@
-package App::Git::StrongHash::CatFilerator;
+package App::StrongHash::Git::CatFilerator;
 use strict;
 use warnings;
 
@@ -6,18 +6,17 @@ use Carp;
 use Try::Tiny;
 use File::Temp 'tempfile';
 
-use parent 'App::Git::StrongHash::Piperator';
+use parent 'App::StrongHash::Piperator';
 
 
 =head1 NAME
 
-App::Git::StrongHash::CatFilerator - "git cat-file" into an ObjHasher
+App::StrongHash::Git::CatFilerator - "git cat-file" into an ObjHasher
 
 =head1 DESCRIPTION
 
-A specialised L<App::Git::StrongHash::Piperator> for use between
-L<App::Git::StrongHash::Objects> and
-L<App::Git::StrongHash::ObjHasher>.
+A specialised L<App::StrongHash::Piperator> for use between
+L<App::StrongHash::Git::Objects> and L<App::StrongHash::ObjHasher>.
 
 
 =head1 CLASS METHOD
@@ -26,8 +25,8 @@ L<App::Git::StrongHash::ObjHasher>.
 
 Defines a Git command to C<git cat-file> the listed objects, which
 will be L</start>ed later.  Object data is sent to $hasher (an
-L<App::Git::StrongHash::ObjHasher>) and $output_method is called on it
-at the end of each object.
+L<App::StrongHash::ObjHasher>) and $output_method is called on it at
+the end of each object.
 
 L</nxt> returns the result of each $output_method call.  The
 C<output_*> method names are suitable, default is L</output_hex>.
@@ -99,7 +98,7 @@ sub start {
 =head2 finish()
 
 Clean up the tmpfile, then close the pipe filehandle as for
-L<App::Git::StrongHash::Piperator/finish>.
+L<App::StrongHash::Piperator/finish>.
 
 =cut
 

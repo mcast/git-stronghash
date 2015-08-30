@@ -87,7 +87,7 @@ Based on my interpretation of this, informed by many articles (references now lo
 * [ ] Iterator for digestfile body --> are these commits present? --> if yes, are their trees and blobs?
 * [ ] Iterator for treeful of digestfiles
 * [ ] Support submodule (commit object in tree).  `TODO: Ignoring submodule \'160000 commit 34570e3bd4ef302f7eefc5097d4471cdcec108b9 - test-data\' at ...`
-* [ ] Teach App::Git::StrongHash::Objects to subtract already-hashed objects
+* [ ] Teach App::StrongHash::Git::Objects to subtract already-hashed objects
 * [ ] Notice when A:G:SH:Objects discovers new objects which relate only to the previous signature, and defer
 * [ ] Stream digestfiles directly into some other ref namespace
 * [ ] Machinery to get these signed by something from time to time
@@ -97,29 +97,33 @@ git grep -nE 'TO[D]O' | perl -i -e 'undef $/; $todo=<STDIN>; $todo =~ s{^README.
 ```
 ## in-source
 ```
-lib/App/Git/StrongHash/DfLister.pm:24:TODO: Extend args.  May need to index by another column.  May want to index only commits.
-lib/App/Git/StrongHash/ObjHasher.pm:196:    unshift @{ $out{htype} }, 'gitsha1';  # TODO:HTYPE remove when filev=1 gone
-lib/App/Git/StrongHash/ObjHasher.pm:296:     comment => 'n/c', # TODO: add API for optional comment
-lib/App/Git/StrongHash/Objects.pm:99:TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
-lib/App/Git/StrongHash/Objects.pm:101:TODO: should find topdir, and check it's actually a git_dir
-lib/App/Git/StrongHash/Objects.pm:103:TODO: consider git rev-list instead, sure to be faster, probably better control of commit boundaries
-lib/App/Git/StrongHash/Objects.pm:104:TODO: speed test on a known-size repo; (current dbix-class, sha256) ==[ 28m on MBP(2.5GHz Core i5) ]=> 2913KiB digestfile
-lib/App/Git/StrongHash/Objects.pm:129:# TODO: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
-lib/App/Git/StrongHash/Objects.pm:186:    # TODO:OPT not sure we need all this data now, but it's in the commitblob anyway
-lib/App/Git/StrongHash/Objects.pm:208:TODO:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
-lib/App/Git/StrongHash/Objects.pm:219:  my %treeci_ignored; # TODO: delete later
-lib/App/Git/StrongHash/Objects.pm:240:        warn "TODO: Ignoring submodule '$mode $type $gitsha1 $size $name'\n"
-lib/App/Git/StrongHash/Objects.pm:273:# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
-lib/App/Git/StrongHash/Objects.pm:274:# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
-lib/App/Git/StrongHash/Objects.pm:275:# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
-lib/App/Git/StrongHash/Objects.pm:289:  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
-lib/App/Git/StrongHash/Objects.pm:385:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
-lib/App/Git/StrongHash/Piperator.pm:41:# TODO: new_later : defer via a Laterator
-lib/App/Git/StrongHash/Piperator.pm:42:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
+lib/App/StrongHash/DfLister.pm:24:TODO: Extend args.  May need to index by another column.  May want to index only commits.
+lib/App/StrongHash/Git/Objects.pm:102:TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
+lib/App/StrongHash/Git/Objects.pm:104:TODO: should find topdir, and check it's actually a git_dir
+lib/App/StrongHash/Git/Objects.pm:106:TODO: consider git rev-list instead, sure to be faster, probably better control of commit boundaries
+lib/App/StrongHash/Git/Objects.pm:107:TODO: speed test on a known-size repo; (current dbix-class, sha256) ==[ 28m on MBP(2.5GHz Core i5) ]=> 2913KiB digestfile
+lib/App/StrongHash/Git/Objects.pm:132:# TODO: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
+lib/App/StrongHash/Git/Objects.pm:189:    # TODO:OPT not sure we need all this data now, but it's in the commitblob anyway
+lib/App/StrongHash/Git/Objects.pm:211:TODO:OPT Here, on the first pass before any hashing has been done, there will be double-reading of tree info because we'll hash it later
+lib/App/StrongHash/Git/Objects.pm:264:# TODO: add_treecommit - submodules, subtrees etc. not yet supported in add_trees
+lib/App/StrongHash/Git/Objects.pm:265:# TODO: add_stash, add_reflog - evidence for anything else that happens to be kicking around
+lib/App/StrongHash/Git/Objects.pm:266:# TODO:   git fsck --unreachable --dangling --root --tags --cache --full --progress  --verbose 2>&1 # should list _everything_ in repo
+lib/App/StrongHash/Git/Objects.pm:280:  my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
+lib/App/StrongHash/Git/Objects.pm:376:    # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
+lib/App/StrongHash/Git/TreeAdder.pm:50:      treeci_ignored => {}, # TODO: delete later
+lib/App/StrongHash/Git/TreeAdder.pm:154:      warn "TODO: Ignoring submodule '$mode commit $hexid .../$leaf'\n"
+lib/App/StrongHash/ObjHasher.pm:196:    unshift @{ $out{htype} }, 'gitsha1';  # TODO:HTYPE remove when filev=1 gone
+lib/App/StrongHash/ObjHasher.pm:296:     comment => 'n/c', # TODO: add API for optional comment
+lib/App/StrongHash/Piperator.pm:42:# TODO: new_later : defer via a Laterator
+lib/App/StrongHash/Piperator.pm:43:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
+t/00compile.t:68:  { local $TODO = 'rsn'; fail('check A:SH:: does not refer to A:SH:G::'); }
 t/07objhasher.t:38:    grep { $_ ne 'gitsha1' } # TODO:HTYPE remove when we can hash with it again
 t/08catfile.t:45:      local $TODO = 'early _cleanup would be nice';
 t/08catfile.t:68:    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
 t/08catfile.t:76:  local $TODO = 'L8R';
+t/11bigproj.t:41:      sub { my $msg = "@_"; warn $msg unless $msg =~ /^TODO:/ };
+t/11bigproj.t:54:  local $TODO = 'break up objects into 64k units';
+t/12treeadder.t:75:     "TODO: Ignoring submodule '160000 commit 3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a \.\.\./testrepo'\n",
 ```
 
 # Contributing

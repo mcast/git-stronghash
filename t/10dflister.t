@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 use Test::More;
 use Test::Differences;
 
-use App::Git::StrongHash::DfLister;
+use App::StrongHash::DfLister;
 
 use lib 't/lib';
 use Local::TestUtil qw( testdigestfile tryerr );
@@ -15,9 +15,9 @@ sub main {
   plan tests => 7;
   unified_diff;
 
-  my $dfl_self = App::Git::StrongHash::DfLister->new
+  my $dfl_self = App::StrongHash::DfLister->new
     ('self-0.01' => testdigestfile('self-0.01'));
-  my $dfl_notag = App::Git::StrongHash::DfLister->new
+  my $dfl_notag = App::StrongHash::DfLister->new
     (untagged => testdigestfile('test-data-no-tags-b105de8d622dab99968653e591d717bc9d753eaf'));
 
   my @self_newci = self_newci();

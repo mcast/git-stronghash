@@ -12,7 +12,7 @@ use Local::TestUtil qw( cover_script );
 
 sub main {
   run_absolute();
-  plan tests => 4;
+  plan tests => 5;
 
   my @modfn = split /\n/, slurp("$0.txt");
   @modfn = grep { ! /^#/ } @modfn;
@@ -37,7 +37,7 @@ sub main {
 
   my %seenmod; # pkg => fn
   while (my ($modfn, $path) = each %INC) {
-    next unless $modfn =~ m{^App/Git/StrongHash};
+    next unless $modfn =~ m{^App/StrongHash};
     $modfn =~ s{\.pm$}{};
     $modfn =~ s{/}{::}g;
     $seenmod{$modfn} = $path;
@@ -56,7 +56,7 @@ sub main {
 
   my @t = grep { /\.t$/ && -f $_ }
     map {"$base/t/$_"} read_dir("$base/t");
-  my @use = map { /^\s*use\s+(App::Git::StrongHash\b.*?)(?: |;)/ ? ($1) : () }
+  my @use = map { /^\s*use\s+(App::StrongHash\b.*?)(?: |;)/ ? ($1) : () }
     map { slurp($_) } @t;
   my %uq;
   @uq{@use} = ();
@@ -65,6 +65,7 @@ sub main {
   is_deeply(\@use, \@mod_s, "test use'd vs. mods named")
     or diag explain { listed_for_00 => \@mod_s, tested => \@use, in_testfiles => \@t };
 
+  { local $TODO = 'rsn'; fail('check A:SH:: does not refer to A:SH:G::'); }
   return 0;
 }
 

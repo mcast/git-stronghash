@@ -1,21 +1,21 @@
-package App::Git::StrongHash::Objects;
+package App::StrongHash::Git::Objects;
 use strict;
 use warnings;
 
 use File::Temp 'tempfile';
 use Carp;
 
-use App::Git::StrongHash::Piperator;
-use App::Git::StrongHash::CatFilerator;
-use App::Git::StrongHash::Listerator;
-use App::Git::StrongHash::ObjHasher;
-use App::Git::StrongHash::TreeAdder;
-use App::Git::StrongHash::Regexperator;
+use App::StrongHash::Piperator;
+use App::StrongHash::Git::CatFilerator;
+use App::StrongHash::Listerator;
+use App::StrongHash::ObjHasher;
+use App::StrongHash::Git::TreeAdder;
+use App::StrongHash::Regexperator;
 
 
 =head1 NAME
 
-App::Git::StrongHash::Objects - enumerate relevant Git objects
+App::StrongHash::Git::Objects - enumerate relevant Git objects
 
 =head1 DESCRIPTION
 
@@ -121,7 +121,7 @@ sub _git {
   my @cmd = ("git", "--work-tree", $dir, "--git-dir", "$dir/.git");
   my $nulz = (@arg && $arg[0] eq '-z:') ? shift @arg : 0;
   if (@arg) {
-    my $iter = App::Git::StrongHash::Piperator->new(@cmd, @arg);
+    my $iter = App::StrongHash::Piperator->new(@cmd, @arg);
     $iter->irs($nulz ? "\x00" : "\n");
     return $iter;
   } else {
@@ -137,7 +137,7 @@ sub _git_many {
     my @chunk = splice @arg, 0, $n_up;
     push @iter, $self->_git(@$subcmd, @chunk);
   }
-  return App::Git::StrongHash::Penderator->new(@iter);
+  return App::StrongHash::Penderator->new(@iter);
 }
 
 
@@ -219,7 +219,7 @@ sub add_trees {
   my @treeq =
     grep { !exists $trees->{$_} }
     values %{ $self->{ci_tree} };
-  my $scanner = App::Git::StrongHash::TreeAdder->new($self, $trees, $blobs);
+  my $scanner = App::StrongHash::Git::TreeAdder->new($self, $trees, $blobs);
   while (@treeq) {
     @treeq = $scanner->scantrees(\@treeq);
   }
@@ -236,7 +236,7 @@ sub add_trees {
   }
   my $sizer = $self->_git(qw( cat-file --batch-check ));
   $sizer->start_with_STDIN($filename);
-  $sizer = App::Git::StrongHash::Regexperator->new
+  $sizer = App::StrongHash::Regexperator->new
     ($sizer, qr{^([0-9a-f]{40}) blob (\d+)\n},
      'unexpected output from "git cat-file --batch-check of blobs"');
   while (my ($n) = $sizer->nxt) {
@@ -267,9 +267,9 @@ sub add_all {
 
 =head2 mkhasher(%info)
 
-Calls L<App::Git::StrongHash::ObjHasher/new> and returns the new
-object.  Values for C<nci, nblob, blobbytes, nobj> are provided and
-will replace those in C<%info>.
+Calls L<App::StrongHash::ObjHasher/new> and returns the new object.
+Values for C<nci, nblob, blobbytes, nobj> are provided and will
+replace those in C<%info>.
 
 =cut
 
@@ -280,13 +280,13 @@ sub mkhasher {
   my $ntag = $self->iter_tag->dcount; # TODO:OPT more code, less memory?
   @info{qw{ blobbytes nblob }} = $self->blobtotal;
   $info{nobj} = $info{nci} + $info{nblob} + $ntree + $ntag;
-  return App::Git::StrongHash::ObjHasher->new(%info);
+  return App::StrongHash::ObjHasher->new(%info);
 }
 
 
 =head2 iter_all(@arg)
 
-Return an L<App::Git::StrongHash::Iterator> which runs across all the
+Return an L<App::StrongHash::Iterator> which runs across all the
 gitsha1 ids.
 
 C<@arg> may be
@@ -295,14 +295,14 @@ C<@arg> may be
 
 =item () # no arguments,
 
-Return L<App::Git::StrongHash::Listerator> of sorted gitsha1 objectids
-of the requested type.
+Return L<App::StrongHash::Listerator> of sorted gitsha1 objectids of
+the requested type.
 
 =item (bin => $hasher)
 
-When passed an L<App::Git::StrongHash::ObjHasher>, return an Iterator
-which will read the objects from disk and send them to the ObjHasher
-in turn, yielding the C<output_bin> from each in order.
+When passed an L<App::StrongHash::ObjHasher>, return an Iterator which
+will read the objects from disk and send them to the ObjHasher in
+turn, yielding the C<output_bin> from each in order.
 
 =item (txt => $hasher)
 
@@ -318,7 +318,7 @@ After passing objects to the ObjHasher, return C<<{ $hasher->output_hex } >>.
 
 sub iter_all {
   my ($self, @arg) = @_;
-  return App::Git::StrongHash::Penderator->new
+  return App::StrongHash::Penderator->new
     ($self->iter_ci(@arg),
      $self->iter_tag(@arg),
      $self->iter_tree(@arg),
@@ -334,7 +334,7 @@ sub iter_all {
 
 =head2 iter_blob
 
-These create the individual L<App::Git::StrongHash::Iterator>s which
+These create the individual L<App::StrongHash::Iterator>s which
 L</iter_all> uses, and take the same C<@arg>.
 
 =cut
@@ -365,7 +365,7 @@ sub iter_blob {
 sub _mkiter {
   my ($self, $list, @arg) = @_;
   @$list = sort @$list;
-  my $iter = App::Git::StrongHash::Listerator->new($list);
+  my $iter = App::StrongHash::Listerator->new($list);
   if (!@arg) {
     return $iter;
   } elsif (2 == @arg) {
@@ -374,7 +374,7 @@ sub _mkiter {
     my $method = $mconv{$mode}
       or croak "Unknown mode iter_*(@arg)";
     # TODO: why push commits/tags/trees/blobs down different CatFilerator instances when one iterator could do the lot?  Well I was thinking about object types and parallelism when I wrote it, but since each comes out with its type the parallelism can be further in anyway.
-    return App::Git::StrongHash::CatFilerator->new
+    return App::StrongHash::Git::CatFilerator->new
       ($self, $hasher, $iter, $method);
   } else {
     croak "Unknown modetype iter_*(@arg)";
@@ -392,7 +392,7 @@ Tells nothing of the size of tags, commits or trees; these are
 presumed to be "small".
 
 Total_byte_size is now most likely undef, since switching to
-L<App::Git::StrongHash::TreeAdder>.
+L<App::StrongHash::Git::TreeAdder>.
 
 =cut
 
@@ -418,7 +418,7 @@ opens and closes the file.
 
 sub mkdigesfile {
   my ($self, $fh, $hasher) = @_;
-  App::Git::StrongHash::ObjHasher->wantbinmode($fh);
+  App::StrongHash::ObjHasher->wantbinmode($fh);
   my $stream = $self->iter_all(bin => $hasher);
   print {$fh} $hasher->header_bin or die "Writing header failed: $!";
   while (my @nxt = $stream->nxt) {

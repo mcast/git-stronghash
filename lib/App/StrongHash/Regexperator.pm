@@ -1,15 +1,15 @@
-package App::Git::StrongHash::Regexperator;
+package App::StrongHash::Regexperator;
 use strict;
 use warnings;
 
 use Carp;
 
-use parent 'App::Git::StrongHash::Iterator';
+use parent 'App::StrongHash::Iterator';
 
 
 =head1 NAME
 
-App::Git::StrongHash::Regexperator - regexp mapping iterator
+App::StrongHash::Regexperator - regexp mapping iterator
 
 =head1 DESCRIPTION
 
@@ -20,8 +20,8 @@ input and return the captures.  Dies on regexp failure.
 
 =head2 new($iter, $regex, $errmsg)
 
-Create for given L<App::Git::StrongHash::Iterator> and Regexp, with
-the first part of the error message for non-match.
+Create for given L<App::StrongHash::Iterator> and Regexp, with the
+first part of the error message for non-match.
 
 $errmsg defaults to "No match".
 
@@ -40,8 +40,8 @@ sub new {
 
 =head2 nxt()
 
-In list context, call L<App::Git::StrongHash::Iterator/nxt> and
-attempt the match.
+In list context, call L<App::StrongHash::Iterator/nxt> and attempt the
+match.
 
 =over 4
 

@@ -8,11 +8,11 @@ use Digest::SHA;
 use Test::More;
 use Test::MockObject;
 
-use App::Git::StrongHash::Objects;
-use App::Git::StrongHash::ObjHasher;
-use App::Git::StrongHash::Listerator;
-use App::Git::StrongHash::Penderator;
-use App::Git::StrongHash::CatFilerator;
+use App::StrongHash::Git::Objects;
+use App::StrongHash::ObjHasher;
+use App::StrongHash::Listerator;
+use App::StrongHash::Penderator;
+use App::StrongHash::Git::CatFilerator;
 
 use lib 't/lib';
 use Local::TestUtil qw( testrepo_or_skip tryerr bin2hex t_nxt_wantarray );
@@ -26,13 +26,13 @@ sub main {
     my @ids = qw( 25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb
 		  32823f581286f5dcff5ee3bce389e13eb7def3a8
 		  96cc558853a03c5d901661af837fceb7a81f58f6 );
-    my $R = App::Git::StrongHash::Objects->new($testrepo);
-    my $H = App::Git::StrongHash::ObjHasher->new
+    my $R = App::StrongHash::Git::Objects->new($testrepo);
+    my $H = App::StrongHash::ObjHasher->new
       (htype => [qw[ gitsha1 sha256 ]],
        nci => 0, nblob => 0, nobj => 0, blobbytes => 0);
 
-    my $ids = App::Git::StrongHash::Listerator->new(@ids);
-    my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $ids);
+    my $ids = App::StrongHash::Listerator->new(@ids);
+    my $CF = App::StrongHash::Git::CatFilerator->new($R, $H, $ids);
 
     is($CF->{output_method}, 'output_hex', 'default output_method'); # wrong place
     t_nxt_wantarray($CF);
@@ -88,8 +88,8 @@ sub tt_breakage {
   my $mockrepo = Test::MockObject->new;
   $mockrepo->mock(_git => sub { qw( echo foo ) });
   my $H = Test::MockObject->new;
-  my $ids = App::Git::StrongHash::Listerator->new(qw( a10000 ee00ff ));
-  $L1 = __LINE__; my $CF = App::Git::StrongHash::CatFilerator->new
+  my $ids = App::StrongHash::Listerator->new(qw( a10000 ee00ff ));
+  $L1 = __LINE__; my $CF = App::StrongHash::Git::CatFilerator->new
     ($mockrepo, $H, $ids, 'output_hex');
   $CF->start;
   my $tmp_fn = $CF->_ids_fn;
@@ -114,15 +114,15 @@ sub tt_breakage {
 
 sub tt_missing {
   my $testrepo = testrepo_or_skip();
-  my $R = App::Git::StrongHash::Objects->new($testrepo);
-  my $H = App::Git::StrongHash::ObjHasher->new
+  my $R = App::StrongHash::Git::Objects->new($testrepo);
+  my $H = App::StrongHash::ObjHasher->new
     (htype => [qw[ gitsha1 sha256 ]], nci => 2, nobj => 2, nblob => 0, blobbytes => 0);
-  my $ids = App::Git::StrongHash::Listerator->new
+  my $ids = App::StrongHash::Listerator->new
     (qw( 123456789abcdef0123456789abcdef012345678 96cc5588 )); # missing; seq 1 50
   my @w;
   local $SIG{__WARN__} = sub { push @w, "@_" };
 
-  my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $ids, 'output_hex');
+  my $CF = App::StrongHash::Git::CatFilerator->new($R, $H, $ids, 'output_hex');
   my @n = $CF->nxt;
   is($n[0],
      "gitsha1:96cc558853a03c5d901661af837fceb7a81f58f6 SHA-256:02d36ee22aefffbb3eac4f90f703dd0be636851031144132b43af85384a2afcd\n",
@@ -136,7 +136,7 @@ sub tt_missing {
 
 sub tt_testrepo {
   my ($testrepo) = @_;
-  my $repo = App::Git::StrongHash::Objects->new($testrepo);
+  my $repo = App::StrongHash::Git::Objects->new($testrepo);
   $repo->add_tags->add_commits->add_trees;
 
   my $H = $repo->mkhasher(htype => [qw[ gitsha1 sha1 sha256 ]]);
@@ -146,7 +146,7 @@ sub tt_testrepo {
   is($H->{nobj}, $nobj, "nobj");
 
   my $df = $H->header_bin;
-  $df .= join '', App::Git::StrongHash::Penderator->new
+  $df .= join '', App::StrongHash::Penderator->new
     ($repo->iter_ci(bin => $H),
      $repo->iter_tag(bin => $H),
      $repo->iter_tree(bin => $H),
@@ -177,12 +177,12 @@ sub tt_testrepo {
 
 sub tt_kidcrash {
   my $testrepo = testrepo_or_skip();
-  my $R = App::Git::StrongHash::Objects->new($testrepo)->add_commits;
-  my $H = App::Git::StrongHash::ObjHasher->new
+  my $R = App::StrongHash::Git::Objects->new($testrepo)->add_commits;
+  my $H = App::StrongHash::ObjHasher->new
     (htype => [qw[ gitsha1 sha256 ]], nci => 0, nobj => 0);
 
   # Run program which fails
-  my $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $R->iter_ci);
+  my $CF = App::StrongHash::Git::CatFilerator->new($R, $H, $R->iter_ci);
   $CF->{cmd} = [qw[ false ]];
   like(tryerr { my @n = $CF->nxt; $n[0] },
        qr{^ERR:command returned 1 in 'false'}, 'false');
@@ -190,7 +190,7 @@ sub tt_kidcrash {
        qr{^ERR:command has finished in 'false'}, 'not false again');
 
   # Run program which doesn't exist, warnings to STDOUT
-  $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $R->iter_ci);
+  $CF = App::StrongHash::Git::CatFilerator->new($R, $H, $R->iter_ci);
   $CF->{cmd} = [qw[ /does/not/exist ]];
   my $prog_dne = tryerr {
     local $SIG{__WARN__} =
@@ -205,7 +205,7 @@ sub tt_kidcrash {
     $prog_dne =~ $prog_dne_re;
   $run_warn =~ s{\\(.)}{$1}g; # un-quotemeta
   like($run_warn,
-       qr{^warn: Can't exec "/does/not/exist": No such file or directory at \S*blib/lib/App/Git/StrongHash/Piperator.pm line \d+\.$},
+       qr{^warn: Can't exec "/does/not/exist": No such file or directory at \S*blib/lib/App/StrongHash/Piperator\.pm line \d+\.$},
        'run /d/n/e post-exec warn');
   like(tryerr { my @n = $CF->nxt; $n[0] },
        qr{^ERR:command returned 1 in '/does/not},
@@ -215,7 +215,7 @@ sub tt_kidcrash {
        'run /d/n/e refuse repeat');
 
   # Feed program from absent input file, warnings to STDOUT
-  $CF = App::Git::StrongHash::CatFilerator->new($R, $H, $R->iter_ci);
+  $CF = App::StrongHash::Git::CatFilerator->new($R, $H, $R->iter_ci);
   $CF->{gitsha1s_fn} = '/does/not/exist';
   my $input_dne = tryerr {
     local $SIG{__WARN__} = sub { print STDOUT "warn: @_" };

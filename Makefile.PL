@@ -4,8 +4,8 @@ use strict;
 use warnings;
 
 WriteMakefile
-  (NAME         => 'App::Git::StrongHash',
-   VERSION_FROM => 'lib/App/Git/StrongHash.pm',
+  (NAME         => 'App::StrongHash',
+   VERSION_FROM => 'lib/App/StrongHash.pm',
    PREREQ_PM    =>
    {
     'Try::Tiny' => 0,
@@ -31,5 +31,5 @@ WriteMakefile
     'Test::MockObject' => 0,
    },
    EXE_FILES => [map {"script/git-stronghash-$_"} qw[ all dump ]],
-   ABSTRACT     => 'App::Git::StrongHash provides git-stronghash which adds secure hashing to repository contents',
+   ABSTRACT     => 'App::StrongHash provides git-stronghash which adds secure hashing to repository contents',
    AUTHOR     => 'Matthew Astley <mcast@cpan.org>');

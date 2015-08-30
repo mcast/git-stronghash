@@ -8,7 +8,7 @@ use Test::More;
 use Cwd 'cwd';
 use Test::Differences;
 
-use App::Git::StrongHash::Objects;
+use App::StrongHash::Git::Objects;
 
 use lib 't/lib';
 use Local::TestUtil qw( testrepo_or_skip tryerr );
@@ -33,7 +33,7 @@ sub main {
   unified_diff();
 
   my $repo;
-  my $RST = sub { $repo = App::Git::StrongHash::Objects->new($testrepo) };
+  my $RST = sub { $repo = App::StrongHash::Git::Objects->new($testrepo) };
 
   $RST->();
   is((join '  ', $repo->_git),
@@ -128,7 +128,7 @@ sub main {
   };
 
   subtest no_tags => sub {
-    $repo = App::Git::StrongHash::Objects->new($testrepo_notags);
+    $repo = App::StrongHash::Git::Objects->new($testrepo_notags);
     $repo->add_tags;
     is_deeply([ $repo->iter_tag->collect ],
               [], "iter_tag");
@@ -154,7 +154,7 @@ sub main {
     $smv_re = qr{$smv_re};
     my @w;
     local $SIG{__WARN__} = sub { push @w, "@_" };
-    $repo = App::Git::StrongHash::Objects->new(cwd()); # code for this project has submods
+    $repo = App::StrongHash::Git::Objects->new(cwd()); # code for this project has submods
     $repo->add_tags->add_commits;
     is(scalar @w, 0, "no warn before trees");
     $repo->add_trees;

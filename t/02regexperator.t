@@ -4,7 +4,7 @@ use warnings FATAL => 'all';
 
 use Test::More;
 
-use App::Git::StrongHash::Regexperator;
+use App::StrongHash::Regexperator;
 
 use lib 't/lib';
 use Local::TestUtil qw( mkiter tryerr plusNL ione t_nxt_wantarray );
@@ -12,7 +12,7 @@ use Local::TestUtil qw( mkiter tryerr plusNL ione t_nxt_wantarray );
 
 sub main {
   plan tests => 10;
-  my $AGSR = 'App::Git::StrongHash::Regexperator';
+  my $ASHR = 'App::StrongHash::Regexperator';
 
   my @w;
   local $SIG{__WARN__} = sub {
@@ -22,28 +22,28 @@ sub main {
   };
 
   { # 2
-    my $seq = $AGSR->new( mkiter(qw( foo bar baz )), qr{[aeiou]}, "no vowel");
+    my $seq = $ASHR->new( mkiter(qw( foo bar baz )), qr{[aeiou]}, "no vowel");
     t_nxt_wantarray($seq);
     is_deeply([ $seq->collect ], plusNL(qw(foo bar baz)), "match nocapture");
   }
 
   { # 2
     my $L1;
-    my $seq = $AGSR->new( mkiter(qw( foo bar )), qr{fump}, "MSVerr");
+    my $seq = $ASHR->new( mkiter(qw( foo bar )), qr{fump}, "MSVerr");
     like(tryerr { $L1 = __LINE__; $seq->collect },
 	 qr{^ERR:MSVerr: q\{foo\n\} !~ qr\{\S*fump\S*\} at t/02\S+ line $L1\.$}, "no match message");
-    $seq = $AGSR->new(mkiter(qw( foo bar )), qr{fump});
+    $seq = $ASHR->new(mkiter(qw( foo bar )), qr{fump});
     like(tryerr { $seq->collect },
 	 qr{^ERR:No match: q\{foo\n\} !~}, "no match default");
   }
 
   { # 1
-    my $seq = $AGSR->new(mkiter(qw( foo bar baz )), qr{([aeiou]+)});
+    my $seq = $ASHR->new(mkiter(qw( foo bar baz )), qr{([aeiou]+)});
     is_deeply([ $seq->collect ], [qw[ oo a a ]], "vowels");
   }
 
   { # 4
-    my $seq = $AGSR->new(mkiter(qw( foo bar baz )), qr{([aeiou]+)(.?)});
+    my $seq = $ASHR->new(mkiter(qw( foo bar baz )), qr{([aeiou]+)(.?)});
     is_deeply(ione($seq), [ 'oo', '' ], 'foo');
     is_deeply(ione($seq), [ 'a', 'r' ], 'bar');
     is_deeply(ione($seq), [ 'a', 'z' ], 'baz');
