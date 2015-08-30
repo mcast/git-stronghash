@@ -60,13 +60,19 @@ sub main {
     plan tests => 12;
     my %field =
       (ci_tree => { b1ef447c50a6bb259e97b0e8153f1f5b58982531 => '25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb' },
-       tree => { '32823f581286f5dcff5ee3bce389e13eb7def3a8' => undef },
+       tree => { '32823f581286f5dcff5ee3bce389e13eb7def3a8' => undef,
+		 # this is the d1/ tree, containing d1/fifty blob
+	       },
       );
     foreach my $f (qw( tag ci_tree tree blob )) {
       $repo->{$f} = $field{$f} ||= {};
     }
     $repo->add_tags->add_commits->add_trees;
-    cmpobj(add_trees => $repo, "primed");
+    {
+      delete local $GURU_CHECKED->{add_trees}{blob}{'96cc558853a03c5d901661af837fceb7a81f58f6'};
+      # don't expect to see d1/fifty, because d1/ is not scanned
+      cmpobj(add_trees => $repo, "primed");
+    }
     while (my ($k, $v) = each %field) {
       cmp_ok(scalar keys %$v, '>', 0, "repo{$k} collection");
     }
