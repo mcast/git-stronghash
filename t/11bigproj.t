@@ -39,9 +39,10 @@ sub main {
   {
     local $SIG{__WARN__} =
       sub { my $msg = "@_"; warn $msg unless $msg =~ /^TODO:/ };
+    my $sec = 120;
     local $SIG{ALRM} =
-      sub { die "Timeout!  We don't have all day for this test" };
-    alarm(120);
+      sub { die "Timeout (${sec}sec) scanning $repo" };
+    alarm($sec);
     $addt->('start');
     foreach my $mth (qw( add_tags add_commits add_trees )) {
       $OL->$mth;
