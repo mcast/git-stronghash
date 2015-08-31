@@ -11,6 +11,7 @@ use App::StrongHash::Listerator;
 use App::StrongHash::ObjHasher;
 use App::StrongHash::Git::TreeAdder;
 use App::StrongHash::Regexperator;
+use App::StrongHash::DfLister;
 
 
 =head1 NAME
@@ -427,6 +428,26 @@ sub mkdigesfile {
     print {$fh} $nxt[0] or die "Writing body failed: $!";
   }
   return;
+}
+
+
+=head2 subtract_seen($dflister)
+
+Remove from this collection of objects-to-scan some which have already
+been seen.  Return $self.
+
+This should be done after relevant C<add_*> methods have been called.
+Internal state is modified, as if the objects in C<$dflister> had not
+been seen.
+
+=cut
+
+sub subtract_seen {
+  my ($self, $dfl) = @_;
+  foreach my $h (@{$self}{qw{ ci_tree tree blob tag }}) {
+    $dfl->whittle($h, 1); # remove seen
+  }
+  return $self;
 }
 
 
