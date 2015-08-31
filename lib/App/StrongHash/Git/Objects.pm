@@ -119,7 +119,8 @@ sub _git {
   my ($self, @arg) = @_;
   my $dir = $self->{dir};
   my @cmd = ("git", "--work-tree", $dir, "--git-dir", "$dir/.git");
-  my $nulz = (@arg && $arg[0] eq '-z:') ? shift @arg : 0;
+  my $nulz = (@arg && $arg[0] eq '-z:') # unused since 6e8083e2 (TreeAdder)
+    ? shift @arg : 0;
   if (@arg) {
     my $iter = App::StrongHash::Piperator->new(@cmd, @arg);
     $iter->irs($nulz ? "\x00" : "\n");
@@ -130,6 +131,7 @@ sub _git {
 }
 
 # TODO: feeding @arg via a splicing pushable iterator would simplify add_trees greatly
+# used only once..?!
 sub _git_many {
   my ($self, $subcmd, $n_up, @arg) = @_;
   my @iter;
