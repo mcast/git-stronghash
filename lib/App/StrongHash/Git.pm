@@ -33,18 +33,19 @@ Create a new digestfile at the named output filename (defaults to STDOUT).
 Digests of each requested type are added (current default is sha256).\n
 Valid digest types are: @ok_htype\n\nf";
 
-  my (@htype, $outfn);
+  my (@htype, $out);
   GetOptions
     ('htype|t=s', \@htype,
-     'outfn|o=s', \$outfn)
+     'out|o=s', \$out)
     or die $synt;
 
   @htype = qw( sha256 ) unless @htype;
   unshift @htype, 'gitsha1';
 
-  my ($outfh, $outfn_tmp);
-  if (defined $outfn) {
-    ($outfh, $outfn_tmp) = tempfile("$outfn.XXXXXX");
+  my ($outfh, $out_tmp);
+  if (defined $out) {
+    ($outfh, $out_tmp) = tempfile("$out.XXXXXX");
+
   } else {
     die "Will not send binary to terminal" if -t STDOUT;
     $outfh = \*STDOUT;
@@ -68,10 +69,10 @@ Valid digest types are: @ok_htype\n\nf";
   $repo->mkdigesfile($outfh, $hasher);
 
   close $outfh; # could be STDOUT
-  if ($outfn) {
-    unless (rename $outfn_tmp, $outfn) {
-      unlink $outfn_tmp or warn "Cleanup (rm $outfn_tmp) failed: $!";
-      die "Rename to $outfn failed: $!";
+  if ($out) {
+    unless (rename $out_tmp, $out) {
+      unlink $out_tmp or warn "Cleanup (rm $out_tmp) failed: $!";
+      die "Rename to $out failed: $!";
     }
   }
 
