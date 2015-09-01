@@ -27,23 +27,26 @@ subcommands.
 
 sub git_all {
   my @ok_htype = App::StrongHash::ObjHasher->htypes;
-  my $synt = "Syntax: $0 [ -t <hashtype> ]* [ -o <output> ] [ <digestfilename>* ]
+  my $synt = "Syntax: $0 [ -t <hashtype> ]* [ -o <output> ] [ --subtract <digestfilename>+ ]
 
 Create a new digestfile at the named output filename (defaults to STDOUT).
 Digests of each requested type are added (current default is sha256).\n
 Valid digest types are: @ok_htype\n\nf";
 
-  my (@htype, $out);
+  my (@htype, $out, $subtract);
   GetOptions
     ('htype|t=s', \@htype,
+     'subtract|S', \$subtract,
      'out|o=s', \$out)
     or die $synt;
 
   @htype = qw( sha256 ) unless @htype;
   unshift @htype, 'gitsha1';
 
+    die $synt if @ARGV && !$subtract;
+
   my ($outfh, $out_tmp);
-  if (defined $out) {
+  if (defined $out && $out ne '-') {
     ($outfh, $out_tmp) = tempfile("$out.XXXXXX");
 
   } else {
@@ -55,8 +58,9 @@ Valid digest types are: @ok_htype\n\nf";
   my $repo = App::StrongHash::Git::Objects->new($cwd);
   $repo->add_tags->add_commits->add_trees;
 
-  if (@ARGV) {
+  if ($subtract) {
     my @digestfile = @ARGV;
+    die "--subtract requires filenames" unless @digestfile;
     foreach my $df (@digestfile) {
       open my $fh, '<', $df
 	or die "Read digestfile $df: $!";

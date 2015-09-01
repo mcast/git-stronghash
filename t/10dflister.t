@@ -6,13 +6,15 @@ use Test::More;
 use Test::Differences;
 
 use App::StrongHash::DfLister;
+use App::StrongHash::Git::Objects;
 
 use lib 't/lib';
-use Local::TestUtil qw( testdigestfile tryerr );
+use Local::TestUtil qw( testrepo_or_skip testdigestfile tryerr );
 
 
 sub main {
-  plan tests => 9;
+  my $repo = testrepo_or_skip();
+  plan tests => 10;
   unified_diff;
 
   my $dfl_self = App::StrongHash::DfLister->new
@@ -70,6 +72,32 @@ sub main {
   # find, scalar context
   is($dfl_self->find('e83515ed8991a1bf916f80fe7e5ff37e4cb256cf'), 1, 'find: true');
   is($dfl_self->find('hedgehogs'), 0, 'find: false');
+
+  subtest git_subtract => sub {
+    my $dfl = App::StrongHash::DfLister->new
+      (testdata => testdigestfile('test-data-34570e3bd4ef302f7eefc5097d4471cdcec108b9'));
+
+    my $O = App::StrongHash::Git::Objects->new($repo);
+    $O->add_all;
+    $O->subtract_seen($dfl);
+    is_deeply([ $O->iter_all->collect ], [], "subtract all");
+
+    my %keep =
+      qw( blob   f00c965d8307308469e537302baa73048488f162
+	  commit 5d88f523fa75b55dc9b6c71bf1ee2fba8a32c0a5
+	  tag    d9101db5d2c6d87f92605709f2e923cd269affec
+	  tree   18860e203b47f19b3126c50f6dfb91c2ae97a40d );
+
+    $dfl->forget([ values %keep ]);
+    $O = App::StrongHash::Git::Objects->new($repo);
+    $O->add_all;
+    $O->subtract_seen($dfl);
+    my @obj = $O->iter_all->collect;
+    is_deeply([ sort(@obj) ],
+	      [ sort( values %keep ) ],
+	      "subtract all but four")
+      or note explain { keep => \%keep, obj => \@obj };
+  };
 
   return 0;
 }

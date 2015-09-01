@@ -128,4 +128,30 @@ sub all {
 }
 
 
+=head2 forget(\@objid)
+
+=head2 forget(\%set)
+
+Remove the array elements or hash keys from the internal state, as if
+they had not been read from the digestfile during L</slurp>.
+
+Returns $self.
+
+There is currently no inverse operation, it is used for testing.  IDs
+must be given with full length.  IDs listed but not found are ignored.
+
+=cut
+
+sub forget {
+  my ($self, $some) = @_;
+  my $objid = $self->_objid;
+  if (ref($some) eq 'ARRAY') {
+    delete @{$objid}{@$some};
+  } else {
+    delete @{$objid}{keys %$some};
+  }
+  return $self;
+}
+
+
 1;

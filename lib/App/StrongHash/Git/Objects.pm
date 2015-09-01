@@ -444,8 +444,12 @@ been seen.
 
 sub subtract_seen {
   my ($self, $dfl) = @_;
-  foreach my $h (@{$self}{qw{ ci_tree tree blob tag }}) {
+  foreach my $h (@{$self}{qw{ ci_tree tree blob }}) {
     $dfl->whittle($h, 1); # remove seen
+  }
+  my $tags = $self->{tag};
+  while (my ($t, $id) = each %$tags) {
+    delete $tags->{$t} if $dfl->find($id);
   }
   return $self;
 }
