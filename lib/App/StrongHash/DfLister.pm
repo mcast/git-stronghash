@@ -80,7 +80,12 @@ sub find {
   for (my $i=0; $i<@objid; $i++) {
     $objid[$i] = exists $o->{ $objid[$i] } ? 1 : 0;
   }
-  return @objid;
+  if (wantarray) {
+    return @objid;
+  } else {
+    return $objid[0] if 1 == @objid;
+    croak "need list context for multiple objid";
+  }
 }
 
 

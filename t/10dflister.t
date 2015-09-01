@@ -12,7 +12,7 @@ use Local::TestUtil qw( testdigestfile tryerr );
 
 
 sub main {
-  plan tests => 7;
+  plan tests => 9;
   unified_diff;
 
   my $dfl_self = App::StrongHash::DfLister->new
@@ -63,8 +63,13 @@ sub main {
 	     'all')
     or note "expected are from   $cmd | cut -d' ' -f1";
 
+  # find, list context
   is_deeply([ $dfl_self->find(@self_newci[39 .. 45]) ],
 	    [qw[ 0 0 1 1 1 1 1 ]], 'find(39..45)');
+
+  # find, scalar context
+  is($dfl_self->find('e83515ed8991a1bf916f80fe7e5ff37e4cb256cf'), 1, 'find: true');
+  is($dfl_self->find('hedgehogs'), 0, 'find: false');
 
   return 0;
 }
