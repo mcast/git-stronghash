@@ -95,12 +95,12 @@ sub tt_breakage {
   my $tmp_fn = $CF->_ids_fn;
   is($CF->_ids_fn, $tmp_fn, "repeatable _ids_fn");
   like(tryerr { $CF->_ids_dump }, qr{^ERR:read gitsha1s: too late at }, "dump gitsha1s once only");
-  $CF->_cleanup;
-  $CF->_cleanup; # should not error
-  is($CF->_ids_fn, undef, "_ids_fn cleared");
   like(tryerr { my @n = $CF->nxt; $n[0] },
        qr{^ERR:cat-file parse fail on 'foo\\ cat\\-file\\ \\-\\-batch' in 'echo },
        "already running / can't parse echo");
+  $CF->_cleanup;
+  $CF->_cleanup; # should not error
+  is($CF->_ids_fn, undef, "_ids_fn cleared");
   like(tryerr { $CF->start }, # again
        qr{^ERR:read gitsha1s_fn: too late at }, "can't restart");
   is(scalar @w, 0, "no warning yet");
