@@ -43,7 +43,13 @@ Valid digest types are: @ok_htype\n\nf";
   @htype = qw( sha256 ) unless @htype;
   unshift @htype, 'gitsha1';
 
-    die $synt if @ARGV && !$subtract;
+  my @digestfile;
+  if ($subtract) {
+    @digestfile = @ARGV;
+    die "--subtract requires filenames" unless @digestfile;
+  } else {
+    die $synt if @ARGV;
+  }
 
   my ($outfh, $out_tmp);
   if (defined $out && $out ne '-') {
@@ -58,15 +64,11 @@ Valid digest types are: @ok_htype\n\nf";
   my $repo = App::StrongHash::Git::Objects->new($cwd);
   $repo->add_tags->add_commits->add_trees;
 
-  if ($subtract) {
-    my @digestfile = @ARGV;
-    die "--subtract requires filenames" unless @digestfile;
-    foreach my $df (@digestfile) {
-      open my $fh, '<', $df
-	or die "Read digestfile $df: $!";
-      my $dfl = App::StrongHash::DfLister->new($df, $fh);
-      $repo->subtract_seen($dfl);
-    }
+  foreach my $df (@digestfile) {
+    open my $fh, '<', $df
+      or die "Read digestfile $df: $!";
+    my $dfl = App::StrongHash::DfLister->new($df, $fh);
+    $repo->subtract_seen($dfl);
   }
 
   my $hasher = $repo->mkhasher(htype => \@htype);
