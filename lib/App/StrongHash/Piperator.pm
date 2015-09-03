@@ -159,8 +159,8 @@ This must be called just once per object.
 
 =item * Calling it again generates a "double finish" error.
 
-=item * Failing to call it before C<DESTROY> happens will generate
-warnings.
+=item * It is called during C<DESTROY> if necessary, but will generate
+a warning.
 
 =back
 
@@ -190,7 +190,10 @@ sub DESTROY {
   return unless exists $self->{fh}; # blessed but start failed
   my @cmd = @{ $self->{cmd} };
   my $caller = $self->_caller;
-  carp "[w] DESTROY before close on '@cmd' from $caller" if defined $self->{fh};
+  if (defined $self->{fh}) {
+    carp "[w] DESTROY before close on '@cmd' from $caller";
+    $self->finish;
+  }
   return;
 }
 

@@ -2,7 +2,27 @@
 use strict;
 use warnings FATAL => 'all';
 
-use File::Temp qw( tempfile );
+our @unlinked;
+BEGIN {
+  # See unlinkage
+  my $real_unlink;
+  my $see_unlink = sub(@) {
+    my @f = @_;
+    die 'oops' if defined caller(500);
+    # print STDERR  " # unlink happens(@f)\n";
+    push @unlinked, grep { -f $_ } @f;
+    return unlink @f;
+  }
+  ;
+  no strict 'refs';
+  no warnings 'redefine';
+  *{'File::Temp::unlink'} = $see_unlink;
+  # For some reason I don't understand, doing this at runtime just
+  # before the cleanup is ineffective, the $see_unlink is not called.
+  # Do it before loading File::Temp.
+}
+
+use File::Temp qw( tempfile cleanup );
 use File::Slurp qw( slurp );
 use Digest::SHA;
 use Test::More;
@@ -20,7 +40,7 @@ use Local::TestUtil qw( testrepo_or_skip tryerr bin2hex t_nxt_wantarray );
 
 sub main {
   my $testrepo = testrepo_or_skip();
-  plan tests => 6;
+  plan tests => 7;
 
   subtest "catfile" => sub {
     my @ids = qw( 25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb
@@ -72,6 +92,7 @@ sub main {
   subtest missing  => \&tt_missing;
   subtest "test-data/" => sub { tt_testrepo($testrepo) };
   subtest kidcrash => \&tt_kidcrash;
+  subtest tmpclean=> \&tt_tmpclean;
 
   local $TODO = 'L8R';
   fail('check zombie acculumation');
@@ -231,6 +252,38 @@ sub tt_kidcrash {
        'pipe from /d/n/e exit code follows');
 
   return;
+}
+
+sub tt_tmpclean {
+  my $testrepo = testrepo_or_skip();
+  my $R = App::StrongHash::Git::Objects->new($testrepo)->add_commits;
+  my $H = App::StrongHash::ObjHasher->new
+    (htype => [qw[ gitsha1 sha256 ]], nci => 0, nobj => 0);
+
+  my $CF = App::StrongHash::Git::CatFilerator->new($R, $H, $R->iter_ci);
+  my $cf1_fn = $CF->_ids_fn;
+  ok(! $CF->started, 'cf1: file made, not started, DESTROYed');
+  ok(-f $cf1_fn, "cf1: tmpfile here") or note "cf1_fn=$cf1_fn";
+  undef $CF;
+  ok(! -f $cf1_fn, "cf1: tmpfile gone") or note "cf1_fn=$cf1_fn";
+
+  $CF = App::StrongHash::Git::CatFilerator->new($R, $H, $R->iter_ci);
+  my $cf2_fn = $CF->_ids_fn;
+  my @cf2_out = $CF->collect;
+  cmp_ok(scalar @cf2_out, '>', 1, 'cf2: emptied');
+  ok(! -f $cf2_fn, "cf2: tmpfile gone") or note "cf2_fn=$cf2_fn";
+
+  # something to see unlinked
+  @unlinked = ();		# probably already empty
+  my ($fh, $filename) = tempfile('08catfile.tmpclean.XXXXXXXXXX', UNLINK => 1);
+  close $fh;
+  ok(-f $filename, 'canary here');
+  cleanup();
+  ok(! -f $filename, 'canary gone')
+    or note explain { KEEP_ALL => $File::Temp::KEEP_ALL, filename => $filename };
+  is_deeply(\@unlinked, [ $filename ], 'no other File::Temp to cleanup')
+    or note explain { canary => $filename, unlinked => \@unlinked };
+  # tmpfiles used by CatFilerator should have been cleaned already
 }
 
 
