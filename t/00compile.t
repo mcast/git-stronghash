@@ -12,7 +12,7 @@ use Local::TestUtil qw( cover_script );
 
 sub main {
   run_absolute();
-  plan tests => 5;
+  plan tests => 6;
 
   my @modfn = split /\n/, slurp("$0.txt");
   @modfn = grep { ! /^#/ } @modfn;
@@ -70,6 +70,15 @@ sub main {
   chomp @gitty;
   is(scalar @gitty, 0, "App::StrongHash:: modules mentioning App::StrongHash::Git::")
     or note explain { gitty => \@gitty };
+
+  my @testfiles = (<t/*.t>, <t/lib/Local/*.pm>);
+  my @allcode = map { nl($_ => slurp($_)) } (values %seenmod, @testfiles);
+  my @templitter =
+    grep { /\btempfile\b/ && ! /use File::Temp/ && ! /UNLINK/ }
+    @allcode;
+  is_deeply(\@templitter, [], # I've been forgetting them
+	    'tempfile(...) without explicit UNLINK')
+    or note explain { templitter => \@templitter };
 
   return 0;
 }
