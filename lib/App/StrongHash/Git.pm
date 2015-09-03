@@ -31,7 +31,7 @@ sub git_all {
 
 Create a new digestfile at the named output filename (defaults to STDOUT).
 Digests of each requested type are added (current default is sha256).\n
-Valid digest types are: @ok_htype\n\nf";
+Valid digest types are: @ok_htype\n\n";
 
   my (@htype, $out, $subtract);
   GetOptions
