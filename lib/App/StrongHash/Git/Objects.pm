@@ -228,7 +228,8 @@ sub add_trees {
   }
 
   # Now fill in sizes of blobs
-  my ($fh, $filename) = tempfile('gitblobids.txt.XXXXXX', TMPDIR => 1);
+  my ($fh, $filename) = # _child_stdin should unlink
+    tempfile('gitblobids.txt.XXXXXX', TMPDIR => 1, UNLINK => 1);
   {
     local $\ = "\n"; # ORS
     while (my ($id, $size) = each %$blobs) {

@@ -73,8 +73,10 @@ sub main {
 
   my @testfiles = (<t/*.t>, <t/lib/Local/*.pm>);
   my @allcode = map { nl($_ => slurp($_)) } (values %seenmod, @testfiles);
+  chomp @allcode;
   my @templitter =
     grep { /\btempfile\b/ && ! /use File::Temp/ && ! /UNLINK/ }
+    map { s{(\s*#\s*)[^"'#{}]+$}{$1...}r }
     @allcode;
   is_deeply(\@templitter, [], # I've been forgetting them
 	    'tempfile(...) without explicit UNLINK')

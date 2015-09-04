@@ -62,7 +62,8 @@ sub _ids_dump {
   my ($self) = @_;
   my $iter_in = delete $self->{gitsha1s}
     or confess "read gitsha1s: too late";
-  my ($fh, $filename) = tempfile('gitsha1s.txt.XXXXXX', TMPDIR => 1);
+  my ($fh, $filename) = # _cleanup or _child_stdin should unlink
+    tempfile('gitsha1s.txt.XXXXXX', TMPDIR => 1, UNLINK => 1);
   local $\ = "\n"; # ORS
   while (my ($nxt) = $iter_in->nxt) {
     print {$fh} $nxt or die "printing to $filename: $!";

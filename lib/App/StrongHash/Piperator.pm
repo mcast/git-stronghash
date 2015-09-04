@@ -123,9 +123,11 @@ sub _child_stdin {
   my ($self, $fn, @cmd) = @_;
   # the uncoverables: I covered them, but Devel::Cover doesn't see it..?
   if (open STDIN, '<', $fn) { # uncoverable branch false
+    unlink $fn; # or the parent can try in END
     exec @cmd;
     # perl issues warning on fail
   } else {
+    unlink $fn; # or the parent can try in END
     warn "open $fn to STDIN: $!"; # uncoverable statement
   }
   close STDOUT; # uncoverable statement

@@ -183,10 +183,12 @@ sub tt_testrepo {
      'sha1(digestfile)')
     or diag bin2hex($df);
 
-  my ($fh, $filename) = tempfile('08catfile.df.XXXXXX', TMPDIR => 1);
+  my ($fh, $filename) = # unlink here
+    tempfile('08catfile.df.XXXXXX', TMPDIR => 1, UNLINK => 1);
   $repo->mkdigesfile($fh, $H);
   close $fh or die "close $filename: $!";
   my $df2 = slurp($filename);
+  unlink $filename;
   my $df2_sha = Digest::SHA->new('sha1')->add($df2)->hexdigest;
   is($df2_sha, $df_sha, 'same when written to file');
   my %hdr = $H->header_bin2txt($df2);

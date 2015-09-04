@@ -53,7 +53,8 @@ Valid digest types are: @ok_htype\n\n";
 
   my ($outfh, $out_tmp);
   if (defined $out && $out ne '-') {
-    ($outfh, $out_tmp) = tempfile("$out.XXXXXX");
+    ($outfh, $out_tmp) = # should be renamed away before unlink
+      tempfile("$out.XXXXXX", UNLINK => 1);
 
   } else {
     die "Will not send binary to terminal" if -t STDOUT;
@@ -74,7 +75,7 @@ Valid digest types are: @ok_htype\n\n";
   my $hasher = $repo->mkhasher(htype => \@htype);
   $repo->mkdigesfile($outfh, $hasher);
 
-  close $outfh; # could be STDOUT
+  close $outfh; # could be STDOUT or tempfile
   if ($out) {
     unless (rename $out_tmp, $out) {
       unlink $out_tmp or warn "Cleanup (rm $out_tmp) failed: $!";
