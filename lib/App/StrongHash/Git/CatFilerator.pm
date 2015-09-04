@@ -109,6 +109,14 @@ sub finish {
   return $self->SUPER::finish;
 }
 
+sub DESTROY {
+  my ($self) = @_;
+  # needed because I haven't got the ->finish semantics right, so it
+  # isn't always called
+  $self->_cleanup;
+  return $self->SUPER::DESTROY;
+}
+
 =head2 nxt()
 
 In list context, fetch one Git object from the parent C<nxt> and feed
