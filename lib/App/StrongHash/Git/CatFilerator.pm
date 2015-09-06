@@ -111,8 +111,7 @@ sub finish {
 
 sub DESTROY {
   my ($self) = @_;
-  # needed because I haven't got the ->finish semantics right, so it
-  # isn't always called
+  # TODO: needed because I haven't got the ->finish semantics right, so _cleanup isn't always called
   $self->_cleanup;
   return $self->SUPER::DESTROY;
 }
