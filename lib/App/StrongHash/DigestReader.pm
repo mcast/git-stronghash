@@ -15,7 +15,7 @@ App::StrongHash::DigestReader - read digestfile
 
 =head1 CLASS METHODS
 
-=head2 new($fh, $name)
+=head2 new($name, $fh)
 
 Return a new object.  Nothing is read from $fh yet.  It must be in
 C<binmode>.
