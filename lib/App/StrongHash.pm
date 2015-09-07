@@ -4,6 +4,7 @@ use warnings;
 
 use Cwd;
 use Getopt::Long;
+use App::StrongHash::DfIndex;
 use App::StrongHash::DigestReader;
 use YAML 'Dump';
 
@@ -45,6 +46,49 @@ sub dump {
   while (my ($h) = $dfr->nxt) {
     print @$h;
   }
+}
+
+
+=head2 lookup()
+
+=cut
+
+sub lookup {
+  my ($help, $src_is_fns, @htype, @check, @fn);
+  getoptions
+    ('help|h' => \$help,
+     'files|F' => \$src_is_fns,
+     'htype|H' => \@htype,
+     'check|c=s' => \@check)
+    or $help=1;
+
+  my $syntax =
+    "Syntax: $0 [ --check <objid> ]* [ --htype <hashname> ]+ --files <filename>+\n
+Specify objectids to check via --check flag, xor pipe them to stdin.\n
+Outputs are on stdout, matching requested htype and objid in order.\n";
+  die $synt if $help;
+  die "Please request hashtype(s)\n\n$synt" unless @htype;
+
+  if ($src_is_fns) {
+    @fn = @ARGV;
+  } else {
+    die "Please specify lookup digestfiles with --files\n\n$synt";
+  }
+
+  $| = 1;
+  my $dfi = App::StrongHash::DfIndex->new_files(@fn);
+  $dfi->want_htype(@htype);
+  foreach my $objid (@check) {
+    print $dfi->lookup($objid);
+  }
+  if (!@check) {
+    warn "[w] Reading stdin from terminal\n" if -t STDIN;
+    while (<STDIN>) {
+      chomp;
+      print $dfi->lookup($_);
+    }
+  }
+  return 0;
 }
 
 

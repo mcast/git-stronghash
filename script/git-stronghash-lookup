@@ -1,0 +1,6 @@
+#! perl
+use strict;
+use warnings;
+
+use App::StrongHash;
+exit App::StrongHash->lookup;
