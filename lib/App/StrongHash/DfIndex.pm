@@ -54,9 +54,42 @@ sub want_htype {
 }
 
 
+sub _scan {
+  my ($self, @for) = @_;
+  my %scanfor;
+  @scanfor{@for} = ();
+  foreach my $fn (@{ $self->{fn} }) {
+    my $dfl = $self->{dflist}{$fn} ||= $self->_lister($fn);
+    $dfl->whittle(\%scanfor, 1) if @for;
+    last if @for && !keys %scanfor; # we know enough to give an answer
+  }
+  return;
+}
+
+sub _lister {
+  my ($self, $fn) = @_;
+  open my $fh, '<', $fn or die "Open $fn for reading: $!";
+  binmode $fh or die "binmode($fn): $!";
+  return App::StrongHash::DfLister->new($fn => $fh);
+}
+
+sub _dreader {
+  my ($self, $fn) = @_;
+  open my $fh, '<', $fn or die "Open $fn for reading: $!";
+  binmode $fh or die "binmode($fn): $!";
+  return App::StrongHash::DigestReader->new($fn => $fh);
+}
+
+
 =head2 lookup(@objid)
 
-Look up each objid and return...?
+Look up each objid and return a list of hash values matching the names
+set in L</want_htype> for each input objectid.
+
+Where the object is not found, or hashes of the requested type are
+missing from the file, generate an error.
+
+TODO: Lax treatment of errors (return undefs?  issue warnings?)
 
 TODO: Currently, it's an error if no htypes are set.  Could return hashref of whatever is available.
 
@@ -66,7 +99,33 @@ TODO: Only works on full-length objectids, but should perhaps be more helpful.
 
 sub lookup {
   my ($self, @objid) = @_;
-  return die 'what?';
+  $self->_scan(@objid);
+
+  my %read_in; # fn => @obj
+  while (my ($fn, $dflist) = each %{ $self->{dflist} }) {
+    push @{ $read_in{$fn} }, grep { $dflist->find(@objid) } @objid;
+  }
+
+  my %find;
+  @find{ @objid } = ();
+  my ($idxkey, $ik_fn);
+  while (my ($fn, $objs) = each %read_in) {
+    my $dfr = $self->_dreader($fn);
+    my ($dfr_ik) = $dfr->htype;
+    if (defined $idxkey) {
+      die "Index key mismatch: expected $idxkey from $ik_fn, found $dfr_ik in $fn"
+	unless $dfr_ik eq $idxkey;
+    } else {
+      ($idxkey, $ik_fn) = ($dfr_ik, $fn);
+    }
+    while (my ($n) = $dfr->nxt) {
+      next unless exists $find{$n->[0]};;
+      my $h = $dfr->nxtout_to_hash($n);
+      $find{ delete $h->{$idxkey} } = $h;
+    }
+  }
+
+  use YAML 'Dump'; return Dump(\%find); # TODO: unfinished
 }
 
 
