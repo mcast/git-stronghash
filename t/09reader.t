@@ -26,6 +26,7 @@ sub main {
     t_nxt_wantarray($df);
     my %df_hdr = $df->header;
     is_deeply($df_hdr{htype}, [qw[ gitsha1 sha512 sha256 ]], "htypes");
+    is_deeply([ $df->htype ], [qw[ gitsha1 sha512 sha256 ]], 'htypes method');
     my @df_hash # list of [ gitsha1, @hash ]
       = $df->nxt;
     t_nxt_wantarray($df);
@@ -37,6 +38,14 @@ sub main {
     is_deeply([ map { $_->[0] } @df_hash ],
 	      \@objs_gitsha1, 'gitsha1s match')
       or note explain { objs_gitsha1 => \@objs_gitsha1, df_hash => \@df_hash };
+
+    my %no2h; # guru checked output is from git-stronghash-dump, first line
+    @no2h{qw{ gitsha1 sha512 sha256 }} =
+      qw( 34570e3bd4ef302f7eefc5097d4471cdcec108b9
+	  ded4cbf51a43ceac61fa519bc8ec225d126d73c27995971b0fe4d1fec27e4221bc19fc753cd495546a8ea0784b502dc15b263409a62948b7b1ecb96c229eb042
+	  ee45e9dfaa2926076d150a782b4753191830276983355316ad99f7571567d594 );
+    is_deeply($df->nxtout_to_hash($df_hash[0]),
+	      \%no2h, 'nxtout_to_hash[0]');
   };
 
   like(tryerr { App::StrongHash::DigestReader->new(testdata => 'filename') },

@@ -73,6 +73,22 @@ sub _fh {
 }
 
 
+=head2 htype()
+
+Return the htype (including the first index-by type) as a list.
+
+=cut
+
+sub htype {
+  my ($self) = @_;
+  $self->{htype} ||= do {
+    my %h = $self->header;
+    $h{htype};
+  };
+  return @{ $self->{htype} };
+}
+
+
 =head2 nxt()
 
 In list context, take C<$list[0]>.
@@ -127,6 +143,22 @@ sub _nxt_eof {
     croak "wantarray!" unless wantarray;
     return ();
   };
+}
+
+
+=head2 nxtout_to_hash($listref)
+
+Utility method to turn a list returned by L</nxt> into a hashref of
+C<($htype => $hashvalue)> using L</htype>.
+
+=cut
+
+sub nxtout_to_hash {
+  my ($self, $l) = @_;
+  my @k = $self->htype;
+  my %out;
+  @out{@k} = @$l;
+  return \%out;
 }
 
 
