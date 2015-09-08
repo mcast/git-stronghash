@@ -55,14 +55,14 @@ sub dump {
 
 sub lookup {
   my ($help, $src_is_fns, @htype, @check, @fn);
-  getoptions
+  GetOptions
     ('help|h' => \$help,
      'files|F' => \$src_is_fns,
-     'htype|H' => \@htype,
+     'htype|H=s' => \@htype,
      'check|c=s' => \@check)
     or $help=1;
 
-  my $syntax =
+  my $synt =
     "Syntax: $0 [ --check <objid> ]* [ --htype <hashname> ]+ --files <filename>+\n
 Specify objectids to check via --check flag, xor pipe them to stdin.\n
 Outputs are on stdout, matching requested htype and objid in order.\n";

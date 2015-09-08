@@ -4,8 +4,8 @@ use warnings;
 
 use Carp;
 
-use App::StrongHash::DigestReader;
 use App::StrongHash::DfLister;
+use App::StrongHash::DigestReader;
 
 
 =head1 NAME
@@ -26,13 +26,14 @@ TODO: More ways to give a collection of digestfiles.
 
 =head2 new_files(@fn)
 
-Create from filenames of digestfiles.
+Create from filenames of digestfiles.  (Caller should do any directory
+recursion and file extension matching.)
 
 =cut
 
 sub new_files {
   my ($class, @fn) = @_;
-  my $self = { fn => $dfr };
+  my $self = { fn => \@fn };
   bless $self, $class;
   return $self;
 }
@@ -43,9 +44,6 @@ sub new_files {
 =head2 want_htype(@htype)
 
 Specify the htypes wanted from the input digestfiles.  Returns $self.
-
-Currently, it's an error if none are set.  Something more opporunistic
-would be possible.
 
 =cut
 
@@ -59,6 +57,8 @@ sub want_htype {
 =head2 lookup(@objid)
 
 Look up each objid and return...?
+
+TODO: Currently, it's an error if no htypes are set.  Could return hashref of whatever is available.
 
 TODO: Only works on full-length objectids, but should perhaps be more helpful.
 
