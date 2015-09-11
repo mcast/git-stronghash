@@ -75,7 +75,7 @@ sub main {
 
   subtest git_subtract => sub {
     my $dfl = App::StrongHash::DfLister->new
-      (testdata => testdigestfile('test-data-34570e3bd4ef302f7eefc5097d4471cdcec108b9'));
+      (testdata => testdigestfile('test-data-34570e3bd4ef302f7eefc5097d4471cdcec108b9-sha512,sha256'));
 
     my $O = App::StrongHash::Git::Objects->new($repo);
     $O->add_all;

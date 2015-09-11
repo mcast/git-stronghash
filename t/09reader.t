@@ -21,7 +21,7 @@ sub main {
     $objs->add_all;
     my @objs_gitsha1 = $objs->iter_all()->collect;
 
-    my $df_fh = testdigestfile('test-data-34570e3bd4ef302f7eefc5097d4471cdcec108b9');
+    my $df_fh = testdigestfile('test-data-34570e3bd4ef302f7eefc5097d4471cdcec108b9-sha512,sha256');
     my $df = App::StrongHash::DigestReader->new(testdata => $df_fh);
     t_nxt_wantarray($df);
     my %df_hdr = $df->header;
