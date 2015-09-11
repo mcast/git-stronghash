@@ -51,7 +51,8 @@ sub t_nxt_wantarray {
 
 sub test_digestfile_name {
   my ($base) = @_;
-  my $name = "t/digestfile/v1/$base.stronghash";
+  my $name = "t/digestfile/v2/$base.stronghash";
+  $name = "t/digestfile/v1/$base.stronghash" if !-f $name;
   die "test_digestfile_name($base): $name not found" unless -f $name;
   return $name;
 }
