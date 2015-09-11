@@ -9,7 +9,11 @@ use File::Slurp qw( write_file );
 use File::Temp 'tempfile';
 use base 'Exporter';
 
-our @EXPORT_OK = qw( ione plusNL tryerr mkiter detaint t_nxt_wantarray testdigestfile testrepo_or_skip hex2bin bin2hex fh_on cover_script );
+our @EXPORT_OK =
+  qw( ione plusNL tryerr mkiter detaint t_nxt_wantarray
+      test_digestfile_name testdigestfile testrepo_or_skip
+      hex2bin bin2hex fh_on
+      cover_script );
 
 
 sub tryerr(&) {
@@ -45,9 +49,16 @@ sub t_nxt_wantarray {
   main::like($sc_nxt, qr{^ERR:wantarray! at \Q$file\E line $L\.$}, 'wantarray || croak');
 }
 
+sub test_digestfile_name {
+  my ($base) = @_;
+  my $name = "t/digestfile/v1/$base.stronghash";
+  die "test_digestfile_name($base): $name not found" unless -f $name;
+  return $name;
+}
+
 sub testdigestfile {
   my ($base) = @_;
-  my $fn = "t/digestfile/v1/$base.stronghash";
+  my $fn = test_digestfile_name($base);
   open my $fh, '<', $fn or die "Read $fn: $!";
   binmode $fh or die $!;
   return $fh;
