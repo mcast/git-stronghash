@@ -61,7 +61,7 @@ sub _scan {
   foreach my $fn (@{ $self->{fn} }) {
     my $dfl = $self->{dflist}{$fn} ||= $self->_lister($fn);
     $dfl->whittle(\%scanfor, 1) if @for;
-    last if @for && !keys %scanfor; # we know enough to give an answer
+#    last if @for && !keys %scanfor; # we know enough to give an answer # TODO: could take this shortcut again iff we see we will satisfy want_htype
   }
   return;
 }
@@ -115,7 +115,7 @@ sub lookup {
   my $merge = sub {
     my ($h) = @_;
     my $objid = delete $h->{$idxkey};
-    if (!defined $find{$objid}) {
+    if (defined $find{$objid}) {
       my $f = $find{$objid};
       while (my ($t, $v) = each %$h) {
 	if (defined $f->{$t}) {
@@ -141,9 +141,8 @@ sub lookup {
       ($idxkey, $ik_fn) = ($dfr_ik, $fn);
     }
     while (my ($n) = $dfr->nxt) {
-      next unless exists $find{$n->[0]};;
-      my $h = $dfr->nxtout_to_hash($n);
-      $find{ delete $h->{$idxkey} } = $h; # TODO: merge, so we can get different htypes from mulitple files
+      next unless exists $find{$n->[0]};
+      $merge->( $dfr->nxtout_to_hash($n) );
     }
   }
 
