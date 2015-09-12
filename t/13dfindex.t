@@ -11,7 +11,7 @@ use Local::TestUtil qw( test_digestfile_name tryerr );
 
 
 sub main {
-  plan tests => 3;
+  plan tests => 4;
   my $ASDI = 'App::StrongHash::DfIndex';
 
   # Define short names for the various files
@@ -42,6 +42,10 @@ sub main {
 	     [qw[ ebde6baba887d10d81c9cf24db15e6a102ca65bbfdf0af8c89d9ca3c48225758 66b9a56f4ea862f40677815e52202c342d6f48eda618723076a3a44876661a746e554f6237152eedeca12dd307392a9c ]],
 	    ], '256,384 * 0hundred,cdbdii');
 
+  # Merge fail
+  like(tryerr { [ $ASDI->new_files(@fn{qw{ s3oB s3A }})->lookup('34570e3bd4ef302f7eefc5097d4471cdcec108b9') ] },
+       qr{^ERR:Disagreement on 34570e3\S+ sha384:ff74ea482bf4\S+e44a868f370c in t/digestfile/\S+-sha384\.stronghash, was sha384:000000002bf4\S+e44a00000000 earlier},
+       '34470e: bogus sha384 value found');
 
   return 0;
 }

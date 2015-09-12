@@ -1,5 +1,6 @@
 # (cd lib; find -name '*.pm' -type f)
 App/StrongHash.pm
+App/StrongHash/DfIndex.pm
 App/StrongHash/DfLister.pm
 App/StrongHash/DigestReader.pm
 App/StrongHash/Git.pm
