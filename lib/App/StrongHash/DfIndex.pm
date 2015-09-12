@@ -89,27 +89,49 @@ set in L</want_htype> for each input objectid.
 Where the object is not found, or hashes of the requested type are
 missing from the file, generate an error.
 
-TODO: Lax treatment of errors (return undefs?  issue warnings?)
+TODO: Allow lax treatment of errors (return undefs + issue warnings?)
 
 TODO: Currently, it's an error if no htypes are set.  Could return hashref of whatever is available.
 
 TODO: Only works on full-length objectids, but should perhaps be more helpful.
 
+TODO: Uses two passes, where one would be enough for a one-call-many-objids lookup.  Perhaps a tee iterator, or just a tap on DfLister?
+
 =cut
 
 sub lookup {
   my ($self, @objid) = @_;
+  croak "need list context" unless wantarray;
   $self->_scan(@objid);
 
   my %read_in; # fn => @obj
   while (my ($fn, $dflist) = each %{ $self->{dflist} }) {
-    push @{ $read_in{$fn} }, grep { $dflist->find(@objid) } @objid;
+    push @{ $read_in{$fn} }, grep { $dflist->find($_) } @objid;
   }
 
   my %find;
   @find{ @objid } = ();
-  my ($idxkey, $ik_fn);
-  while (my ($fn, $objs) = each %read_in) {
+  my ($idxkey, $ik_fn, $fn);
+  my $merge = sub {
+    my ($h) = @_;
+    my $objid = delete $h->{$idxkey};
+    if (!defined $find{$objid}) {
+      my $f = $find{$objid};
+      while (my ($t, $v) = each %$h) {
+	if (defined $f->{$t}) {
+	  die "Disagreement on $objid $t:$v in $fn, ".
+	    "was $t:$$f{$t} earlier" # we didn't record old $fn
+	    unless $f->{$t} eq $v;
+	} else {
+	  $f->{$t} = $v;
+	}
+      }
+    } else {
+      $find{$objid} = $h;
+    }
+  };
+
+  while (($fn, my $objs) = each %read_in) {
     my $dfr = $self->_dreader($fn);
     my ($dfr_ik) = $dfr->htype;
     if (defined $idxkey) {
@@ -121,11 +143,14 @@ sub lookup {
     while (my ($n) = $dfr->nxt) {
       next unless exists $find{$n->[0]};;
       my $h = $dfr->nxtout_to_hash($n);
-      $find{ delete $h->{$idxkey} } = $h;
+      $find{ delete $h->{$idxkey} } = $h; # TODO: merge, so we can get different htypes from mulitple files
     }
   }
 
-  use YAML 'Dump'; return Dump(\%find); # TODO: unfinished
+  my @htype = @{ $self->{htype} || [] }
+    or die "Please set want_htype before lookup";
+  my @out = map { [ @{ $find{$_} }{@htype} ] } @objid;
+  return @out;
 }
 
 
