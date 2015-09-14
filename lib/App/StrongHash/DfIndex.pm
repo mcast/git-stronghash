@@ -83,15 +83,27 @@ sub _dreader {
 
 =head2 lookup(@objid)
 
+=over 4
+
+=item * When L</want_htype> is set to some values,
+
 Look up each objid and return a list of hash values matching the names
 set in L</want_htype> for each input objectid.
 
 Where the object is not found, or hashes of the requested type are
 missing from the file, generate an error.
 
-TODO: Allow lax treatment of errors (return undefs + issue warnings?)
+=item * When L</want_htype> is set to no values, or not yet set,
 
-TODO: Currently, it's an error if no htypes are set.  Could return hashref of whatever is available.
+Look up each objid and return a hashref of C<($htype => $hashval)> for
+each type found, for the requested item.  Some htypes may be missing.
+
+Returned elements will be C<undef> when the objid was not found.
+
+=back
+
+In all cases, if the files specified give conflicting information then
+an error is generated.
 
 TODO: Only works on full-length objectids, but should perhaps be more helpful.
 
@@ -146,8 +158,9 @@ sub lookup {
     }
   }
 
-  my @htype = @{ $self->{htype} || [] }
-    or die "Please set want_htype before lookup"; # TODO:OPT we discover this rather late
+  my @htype = @{ $self->{htype} || [] };
+  return @find{ @objid } unless @htype;
+
   my @out = map {
     my @a;
     my $f = $find{$_}

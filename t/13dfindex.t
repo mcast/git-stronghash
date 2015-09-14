@@ -11,7 +11,7 @@ use Local::TestUtil qw( test_digestfile_name tryerr );
 
 
 sub main {
-  plan tests => 10;
+  plan tests => 12;
   my $ASDI = 'App::StrongHash::DfIndex';
 
   # Define short names for the various files
@@ -70,6 +70,17 @@ sub main {
   is_deeply([ $smm->want_htype(qw( sha256 ))->lookup(qw( 4029c34c1729940c8e71938fbcd2c787f0081ffe 34570e3bd4ef302f7eefc5097d4471cdcec108b9 )) ],
 	    [ ['f89abec316c5bb09babb3e426c8821a934ebbf689058caf458760159bd6d8b41'],
 	      ['ee45e9dfaa2926076d150a782b4753191830276983355316ad99f7571567d594'] ], 'some-hashes-missing: 4029c3 34570 (256)');
+
+  # s-h-m-m whatever-is-available
+  is_deeply([ $smm->want_htype()->lookup(qw( 4029c34c1729940c8e71938fbcd2c787f0081ffe 34570e3bd4ef302f7eefc5097d4471cdcec108b9 )) ],
+	    [ { sha256 => 'f89abec316c5bb09babb3e426c8821a934ebbf689058caf458760159bd6d8b41',
+		sha512 => '23be9da7a21dd87b23be84ba4a2192f69008cb5a0afa4d03f9b87f41ba03876194ce7fce4a66098258aa2ff85bf310263744a9cb9b91fbf405ba5829f4aa183d' },
+	      { sha256 => 'ee45e9dfaa2926076d150a782b4753191830276983355316ad99f7571567d594',
+		sha384 => 'ff74ea482bf47bcb618d27a5018356b0cf522cc3133e3ab7d03e5085fdfd333f02a570765ee55fdd21a6e44a868f370c',
+		sha512 => 'ded4cbf51a43ceac61fa519bc8ec225d126d73c27995971b0fe4d1fec27e4221bc19fc753cd495546a8ea0784b502dc15b263409a62948b7b1ecb96c229eb042' } ],
+	    'some-hashes-missing: hashref-of-hashvals each');
+  is_deeply([ $smm->lookup(qw( beefbaaa )) ],
+	    [ undef ], 'some-hashes-missing: undef when not found');
 
   return 0;
 }
