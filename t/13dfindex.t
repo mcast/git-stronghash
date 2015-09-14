@@ -11,7 +11,7 @@ use Local::TestUtil qw( test_digestfile_name tryerr );
 
 
 sub main {
-  plan tests => 7;
+  plan tests => 10;
   my $ASDI = 'App::StrongHash::DfIndex';
 
   # Define short names for the various files
@@ -58,6 +58,18 @@ sub main {
     or note explain { ans => $ans };
   like(tryerr { [ $ncm->lookup('lost keys') ] },
        qr{^ERR:Nothing found for lost keys\b}, 'nothing found');
+
+  # Some-hashes-missing merge
+  my $smm = $ASDI->new_files(@fn{qw{ s3o s52A }});
+  is_deeply([ $smm->want_htype(qw( sha256 sha384 ))->lookup('34570e3bd4ef302f7eefc5097d4471cdcec108b9') ],
+	    [ [qw[ ee45e9dfaa2926076d150a782b4753191830276983355316ad99f7571567d594 ff74ea482bf47bcb618d27a5018356b0cf522cc3133e3ab7d03e5085fdfd333f02a570765ee55fdd21a6e44a868f370c ]] ],
+	    'some-hashes-missing: 34570 (256,384)');
+  like(tryerr { $ans = [ $smm->lookup(qw( 4029c34c1729940c8e71938fbcd2c787f0081ffe 34570e3bd4ef302f7eefc5097d4471cdcec108b9 )) ] },
+       qr{^ERR:No sha384 hash value found for 4029\S+ }, 'some-hashes-missing: 4029c3 (no 384)')
+    or note explain { ans => $ans };
+  is_deeply([ $smm->want_htype(qw( sha256 ))->lookup(qw( 4029c34c1729940c8e71938fbcd2c787f0081ffe 34570e3bd4ef302f7eefc5097d4471cdcec108b9 )) ],
+	    [ ['f89abec316c5bb09babb3e426c8821a934ebbf689058caf458760159bd6d8b41'],
+	      ['ee45e9dfaa2926076d150a782b4753191830276983355316ad99f7571567d594'] ], 'some-hashes-missing: 4029c3 34570 (256)');
 
   return 0;
 }
