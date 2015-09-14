@@ -17,7 +17,7 @@ App::StrongHash::DfIndex - tell which digestfile has requested object
 Currently, scans a collection of digestfiles in order to return
 lookups from them.
 
-TODO: Later it should probably build an index as required.
+TODO:OPT Later it should probably build an index as required.
 
 TODO: More ways to give a collection of digestfiles.
 
@@ -61,7 +61,7 @@ sub _scan {
   foreach my $fn (@{ $self->{fn} }) {
     my $dfl = $self->{dflist}{$fn} ||= $self->_lister($fn);
     $dfl->whittle(\%scanfor, 1) if @for;
-#    last if @for && !keys %scanfor; # we know enough to give an answer # TODO: could take this shortcut again iff we see we will satisfy want_htype
+#    last if @for && !keys %scanfor; # we know enough to give an answer # TODO:OPT could take this shortcut again iff we see we will satisfy want_htype
   }
   return;
 }
@@ -95,7 +95,7 @@ TODO: Currently, it's an error if no htypes are set.  Could return hashref of wh
 
 TODO: Only works on full-length objectids, but should perhaps be more helpful.
 
-TODO: Uses two passes, where one would be enough for a one-call-many-objids lookup.  Perhaps a tee iterator, or just a tap on DfLister?
+TODO:OPT Uses two passes, where one would be enough for a one-call-many-objids lookup.  Perhaps a tee iterator, or just a tap on DfLister?
 
 =cut
 
@@ -147,11 +147,13 @@ sub lookup {
   }
 
   my @htype = @{ $self->{htype} || [] }
-    or die "Please set want_htype before lookup";
+    or die "Please set want_htype before lookup"; # TODO:OPT we discover this rather late
   my @out = map {
     my @a;
+    my $f = $find{$_}
+      or die "Nothing found for $_";
     foreach my $t (@htype) {
-      my $h = $find{$_}{$t};
+      my $h = $f->{$t};
       push @a, $h;
       die "No $t hash value found for $_" unless defined $h;
     }

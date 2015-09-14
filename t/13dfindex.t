@@ -11,7 +11,7 @@ use Local::TestUtil qw( test_digestfile_name tryerr );
 
 
 sub main {
-  plan tests => 6;
+  plan tests => 7;
   my $ASDI = 'App::StrongHash::DfIndex';
 
   # Define short names for the various files
@@ -56,6 +56,8 @@ sub main {
   like(tryerr { $ans = [ $ncm->want_htype(qw( sha384 sha1 ))->lookup('34570e3bd4ef302f7eefc5097d4471cdcec108b9') ] },
        qr{^ERR:No sha1 hash value found for 34570e3bd4ef302f7eefc5097d4471cdcec108b9\b}, 'no-conflict merge lacks sha1')
     or note explain { ans => $ans };
+  like(tryerr { [ $ncm->lookup('lost keys') ] },
+       qr{^ERR:Nothing found for lost keys\b}, 'nothing found');
 
   return 0;
 }
