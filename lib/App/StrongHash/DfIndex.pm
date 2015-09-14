@@ -148,7 +148,15 @@ sub lookup {
 
   my @htype = @{ $self->{htype} || [] }
     or die "Please set want_htype before lookup";
-  my @out = map { [ @{ $find{$_} }{@htype} ] } @objid;
+  my @out = map {
+    my @a;
+    foreach my $t (@htype) {
+      my $h = $find{$_}{$t};
+      push @a, $h;
+      die "No $t hash value found for $_" unless defined $h;
+    }
+    \@a;
+  } @objid;
   return @out;
 }
 

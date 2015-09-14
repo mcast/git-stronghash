@@ -11,7 +11,7 @@ use Local::TestUtil qw( test_digestfile_name tryerr );
 
 
 sub main {
-  plan tests => 4;
+  plan tests => 6;
   my $ASDI = 'App::StrongHash::DfIndex';
 
   # Define short names for the various files
@@ -46,6 +46,16 @@ sub main {
   like(tryerr { [ $ASDI->new_files(@fn{qw{ s3oB s3A }})->lookup('34570e3bd4ef302f7eefc5097d4471cdcec108b9') ] },
        qr{^ERR:Disagreement on 34570e3\S+ sha384:ff74ea482bf4\S+e44a868f370c in t/digestfile/\S+-sha384\.stronghash, was sha384:000000002bf4\S+e44a00000000 earlier},
        '34470e: bogus sha384 value found');
+
+  # No-conflict merge
+  my $ncm = $ASDI->new_files(@fn{qw{ s3o s3A }});
+  is_deeply([ $ncm->want_htype(qw( sha384 ))->lookup('34570e3bd4ef302f7eefc5097d4471cdcec108b9') ],
+	    [ [qw[ ff74ea482bf47bcb618d27a5018356b0cf522cc3133e3ab7d03e5085fdfd333f02a570765ee55fdd21a6e44a868f370c ]] ],
+	    'no-conflict merge 34570');
+  my $ans;
+  like(tryerr { $ans = [ $ncm->want_htype(qw( sha384 sha1 ))->lookup('34570e3bd4ef302f7eefc5097d4471cdcec108b9') ] },
+       qr{^ERR:No sha1 hash value found for 34570e3bd4ef302f7eefc5097d4471cdcec108b9\b}, 'no-conflict merge lacks sha1')
+    or note explain { ans => $ans };
 
   return 0;
 }
