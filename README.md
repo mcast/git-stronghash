@@ -97,6 +97,14 @@ git grep -nE 'TO[D]O' | perl -i -e 'undef $/; $todo=<STDIN>; $todo =~ s{^README.
 ```
 ## in-source
 ```
+lib/App/StrongHash/DfIndex.pm:20:TODO:OPT Later it should probably build an index as required.
+lib/App/StrongHash/DfIndex.pm:22:TODO: More ways to give a collection of digestfiles.
+lib/App/StrongHash/DfIndex.pm:64:#    last if @for && !keys %scanfor; # we know enough to give an answer # TODO:OPT could take this shortcut again iff we see we will satisfy want_htype
+lib/App/StrongHash/DfIndex.pm:92:TODO: Allow lax treatment of errors (return undefs + issue warnings?)
+lib/App/StrongHash/DfIndex.pm:94:TODO: Currently, it's an error if no htypes are set.  Could return hashref of whatever is available.
+lib/App/StrongHash/DfIndex.pm:96:TODO: Only works on full-length objectids, but should perhaps be more helpful.
+lib/App/StrongHash/DfIndex.pm:98:TODO:OPT Uses two passes, where one would be enough for a one-call-many-objids lookup.  Perhaps a tee iterator, or just a tap on DfLister?
+lib/App/StrongHash/DfIndex.pm:150:    or die "Please set want_htype before lookup"; # TODO:OPT we discover this rather late
 lib/App/StrongHash/DfLister.pm:24:TODO: Extend args.  May need to index by another column.  May want to index only commits.
 lib/App/StrongHash/Git/CatFilerator.pm:114:  # TODO: needed because I haven't got the ->finish semantics right, so _cleanup isn't always called
 lib/App/StrongHash/Git/Objects.pm:103:TODO: Currently we assume this is a full clone with a work-tree, but this probably isn't necessary.
@@ -118,12 +126,8 @@ lib/App/StrongHash/ObjHasher.pm:296:     comment => 'n/c', # TODO: add API for o
 lib/App/StrongHash/Piperator.pm:42:# TODO: new_later : defer via a Laterator
 lib/App/StrongHash/Piperator.pm:43:# TODO: new_parallel : parallelising would be neat, useful for hashing step, maybe as a Forkerator not under Piperator?
 t/07objhasher.t:38:    grep { $_ ne 'gitsha1' } # TODO:HTYPE remove when we can hash with it again
-t/08catfile.t:65:      local $TODO = 'early _cleanup would be nice';
-t/08catfile.t:88:    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
-t/08catfile.t:97:  local $TODO = 'L8R';
-t/11bigproj.t:41:      sub { my $msg = "@_"; warn $msg unless $msg =~ /^TODO:/ };
+t/08catfile.t:93:  local $TODO = 'L8R'; fail('check zombie acculumation');
 t/11bigproj.t:54:  local $TODO = 'break up objects into 64k units';
-t/12treeadder.t:75:     "TODO: Ignoring submodule '160000 commit 3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a \.\.\./testrepo'\n",
 ```
 
 # Contributing

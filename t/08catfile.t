@@ -61,10 +61,7 @@ sub main {
     ok(-f $tmp_fn, "tmpfile exists ($tmp_fn)");
     my ($got) = $CF->nxt;
     is($got, "gitsha1:25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb SHA-256:e3c00fad34dcefaec0e34cdd96ee51ab405e3ded97277f294a17a5153d36bffe\n", 'tree0');
-    {
-      local $TODO = 'early _cleanup would be nice';
-      ok(!-f $tmp_fn, "tmpfile gone (early)");
-    }
+    ok(!-f $tmp_fn, "tmpfile gone (early)");
     ($got) = $CF->nxt;
     is($got, "gitsha1:32823f581286f5dcff5ee3bce389e13eb7def3a8 SHA-256:cbd501dc604a1225934b26e4e5378fc670dd978e67c05f619f5717f502095ccf\n", 'tree1');
 
@@ -85,7 +82,6 @@ sub main {
 
     ($got) = $CF->nxt;
     is($got, undef, "eof");
-    ok(!-f $tmp_fn, "tmpfile gone (eof)"); # TODO: move this up, we could _cleanup after first object returns
   };
 
   subtest breakage => \&tt_breakage;
@@ -94,8 +90,7 @@ sub main {
   subtest kidcrash => \&tt_kidcrash;
   subtest tmpclean=> \&tt_tmpclean;
 
-  local $TODO = 'L8R';
-  fail('check zombie acculumation');
+  local $TODO = 'L8R'; fail('check zombie acculumation');
 
   return 0;
 }

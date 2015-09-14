@@ -71,8 +71,9 @@ sub tt_hasher {
 	    [ [qw[ 3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e ]],
 	      [qw[ 3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d ]] ],
 	    'subrepo');
+  my $o = 'o';
   is("@warn",
-     "TODO: Ignoring submodule '160000 commit 3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a \.\.\./testrepo'\n",
+     "T${o}DO: Ignoring submodule '160000 commit 3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a \.\.\./testrepo'\n",
      "warn(1)");
 
   like(tryerr { $TA->newfile(blob => 1024, "beef") },
