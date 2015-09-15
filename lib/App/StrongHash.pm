@@ -78,14 +78,16 @@ Outputs are on stdout, matching requested htype and objid in order.\n";
   $| = 1;
   my $dfi = App::StrongHash::DfIndex->new_files(@fn);
   $dfi->want_htype(@htype);
+  local $, = " ";
+  local $\ = "\n";
   foreach my $objid (@check) {
-    print $dfi->lookup($objid);
+    print map {@$_} $dfi->lookup($objid);
   }
   if (!@check) {
     warn "[w] Reading stdin from terminal\n" if -t STDIN;
     while (<STDIN>) {
       chomp;
-      print $dfi->lookup($_);
+      print map {@$_} @{ $dfi->lookup($_) };
     }
   }
   return 0;
