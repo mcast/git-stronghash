@@ -100,9 +100,19 @@ sub main {
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
 bf794518e35d7f1ce3a50b3058c4191bb9401e568fc645d77e10b0f404cf1f22 63ea70d6ef287c5a1db399ef6963bd02bb8d97d654b205feb824afde68abd0ef44e9801190ae3e874765dcad041773362ef469828d39f89dbf310b016742aa9c
 WANTOUT
+
     like(qx{ $bin/git-stronghash-lookup --help 2>&1 },
 	 qr{Specify objectids to check via --check flag}, 'help text');
-    
+    is($?, 0xFF00, ' exit');
+    like(qx{ $bin/git-stronghash-lookup --spork 2>&1 },
+	 qr{Specify objectids to check via --check flag}, 'help text (badopt)');
+    is($?, 0xFF00, ' exit');
+    like(qx{ $bin/git-stronghash-lookup --htype sha256 2>&1 },
+	 qr{^Please specify lookup digestfiles with --files}, 'no files in');
+    is($?, 0xFF00, ' exit');
+    like(qx{ $bin/git-stronghash-lookup --files spork 2>&1 },
+	 qr{^Please request hashtype\(s\)}, 'no htypes');
+    is($?, 0xFF00, ' exit');
   };
 
   return 0;
