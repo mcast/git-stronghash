@@ -71,7 +71,7 @@ sub tt_hasher {
 	    [ [qw[ 3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e ]],
 	      [qw[ 3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d ]] ],
 	    'subrepo');
-  my $o = 'o';
+  my $o = 'O';
   is("@warn",
      "T${o}DO: Ignoring submodule '160000 commit 3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a3a \.\.\./testrepo'\n",
      "warn(1)");
