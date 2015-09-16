@@ -87,7 +87,7 @@ Outputs are on stdout, matching requested htype and objid in order.\n";
     warn "[w] Reading stdin from terminal\n" if -t STDIN;
     while (<STDIN>) {
       chomp;
-      print map {@$_} @{ $dfi->lookup($_) };
+      print map {@$_} $dfi->lookup($_);
     }
   }
   return 0;
