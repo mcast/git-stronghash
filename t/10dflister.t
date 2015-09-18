@@ -14,7 +14,7 @@ use Local::TestUtil qw( testrepo_or_skip testdigestfile tryerr );
 
 sub main {
   my $repo = testrepo_or_skip();
-  plan tests => 10;
+  plan tests => 11;
   unified_diff;
 
   my $dfl_self = App::StrongHash::DfLister->new
@@ -72,6 +72,8 @@ sub main {
   # find, scalar context
   is($dfl_self->find('e83515ed8991a1bf916f80fe7e5ff37e4cb256cf'), 1, 'find: true');
   is($dfl_self->find('hedgehogs'), 0, 'find: false');
+  like(tryerr { scalar $dfl_self->find(qw( hedge pigs )) },
+       qr{need list context.* at \Q$0 line }, 'find: multi-scalar');
 
   subtest git_subtract => sub {
     my $dfl = App::StrongHash::DfLister->new

@@ -47,6 +47,14 @@ sub main {
     my $out = qx{$cmd};
     is($?, 0xFF00, 'junk argv: die');
     like($out, qr{^Syntax: }, 'junk argv: syntax message');
+
+    like(qx{t/_stdmerge $bin/git-stronghash-all --spork},
+	 qr{^Unknown option.*\nSyntax: }, 'junk opt: syntax message');
+    is($?, 0xFF00, ' exit');
+    like(qx{t/_stdmerge $bin/git-stronghash-all --subtract},
+	 qr{^--subtract requires filenames}, 'subtract, no files');
+    is($?, 0xFF00, ' exit');
+
   };
 
   subtest dump => sub {
