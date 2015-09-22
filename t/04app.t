@@ -79,6 +79,13 @@ sub main {
 	 qr{^--subtract requires filenames}, 'subtract, no files');
     is($?, 0xFF00, ' exit');
 
+    # --subtract works on the gitsha1s, not presence of desired hash sha512(data(gitsha1))
+    $out = qx{ cd $testrepo && $bin/git-stronghash-all -o - -t sha512 --subtract $dir/out.df};
+    is(length($out),
+       46, # header(v2: gitsha1,sha512)
+       "subtracts to header-only")
+      or note bin2hex($out);
+    is($?, 0, ' exit');
   };
 
   subtest dump => sub {
