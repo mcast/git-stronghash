@@ -76,7 +76,7 @@ Valid digest types are: @ok_htype\n\n";
   $repo->mkdigesfile($outfh, $hasher);
 
   close $outfh; # could be STDOUT or tempfile
-  if ($out) {
+  if (defined $out_tmp) {
     unless (rename $out_tmp, $out) {
       unlink $out_tmp or warn "Cleanup (rm $out_tmp) failed: $!";
       die "Rename to $out failed: $!";

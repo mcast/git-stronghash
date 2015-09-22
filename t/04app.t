@@ -4,6 +4,7 @@ use warnings FATAL => 'all';
 
 use Test::More;
 use Digest::SHA 'sha1_hex';
+use File::Temp 'tempdir';
 use YAML qw( Load );
 
 use lib 't/lib';
@@ -24,14 +25,32 @@ sub main {
 
   cover_script();
 
-  subtest all => sub {
+  subtest git_all => sub {
+    # Outputs...  stdout (default)
     my $cmd = "cd $testrepo && $bin/git-stronghash-all -t sha1 -t sha256";
     my $digestfile = qx{$cmd};
+    is($?, 0, 'all: ok');
     note explain { len => length($digestfile), cmd => $cmd };
     is(sha1_hex($digestfile),
        '09dd604c3f1c3668589fed4d2912d27635591478', # matches 08catfile.t
        'git-stronghash-all')
       or note bin2hex($digestfile);
+
+    # stdout (explicit)
+    my $df2 = qx{$cmd -o -};
+    is($?, 0, 'all(-): ok');
+    is($df2, $digestfile, 'all(-): same');
+
+    # to file
+    my $dir = tempdir('04app.t.XXXXXX', TMPDIR => 1, CLEANUP => 1);
+    my $out = qx{$cmd -o $dir/out.df 2>&1};
+    is($?, 0, 'all(fn): ok');
+    is($out, '', 'all(fn): quiet');
+    open my $fh, '<', "$dir/out.df" or die "read tmp: $!";
+    binmode $fh or die "binmode: $!";
+    $out = do { local $/; <$fh> };
+    close $fh;
+    is($out, $digestfile, 'all(fn): same');
 
     $cmd = "cd $testrepo && $bin/git-stronghash-all";
     my $df_256 = qx{$cmd};
@@ -44,9 +63,14 @@ sub main {
        'default: sha256');
 
     $cmd = "t/_stdmerge $bin/git-stronghash-all junk";
-    my $out = qx{$cmd};
+    $out = qx{$cmd};
     is($?, 0xFF00, 'junk argv: die');
     like($out, qr{^Syntax: }, 'junk argv: syntax message');
+
+    $cmd = "t/_stdmerge $bin/git-stronghash-all --junk";
+    $out = qx{$cmd};
+    is($?, 0xFF00, 'junk opt: die');
+    like($out, qr{^Unknown option.*\nSyntax: }, 'junk opt: syntax message');
 
     like(qx{t/_stdmerge $bin/git-stronghash-all --spork},
 	 qr{^Unknown option.*\nSyntax: }, 'junk opt: syntax message');
@@ -116,7 +140,7 @@ WANTOUT
 	 qr{Specify objectids to check via --check flag}, 'help text');
     is($?, 0xFF00, ' exit');
     like(qx{ $bin/git-stronghash-lookup --spork 2>&1 },
-	 qr{Specify objectids to check via --check flag}, 'help text (badopt)');
+	 qr{Unknown option:.*\nSyntax: }, 'help text (badopt)');
     is($?, 0xFF00, ' exit');
     like(qx{ $bin/git-stronghash-lookup --htype sha256 2>&1 },
 	 qr{^Please specify lookup digestfiles with --files}, 'no files in');
