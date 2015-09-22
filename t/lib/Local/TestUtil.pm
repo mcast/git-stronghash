@@ -98,9 +98,13 @@ sub hex2bin {
 
 sub bin2hex {
   my ($bin) = @_;
-  return "(devel code exists to generate hexdump)";
-  write_file("$0.tmp~", $bin);
-  my $hd = `hexdump -C $0.tmp~`;
+  my ($fh, $fn) = tempfile('bin2hex.XXXXXX', CLEANUP => 1);
+  binmode $fh or die "$fn binmode: $!";
+  local $\ = '';
+  print {$fh} $bin;
+  my $hd = `fexdump -C $fn`;
+  unlink $fn; # or, whatever
+  return "(hexdump -C $fn: failed, code $?)" if $?;
   return $hd;
 }
 
