@@ -30,7 +30,12 @@ subcommands.
 sub dump {
   my ($fn) = @ARGV;
   die "Syntax: $0 <digestfile> | less -S\n" unless 1==@ARGV;
-  open my $fh, '<', $fn or die "Read $fn: $!\n";
+  my $fh;
+  if ($fn eq '-') {
+    $fh = \*STDIN;
+  } else {
+    open $fh, '<', $fn or die "Read $fn: $!\n";
+  }
   binmode $fh or die "binmode $fn: $!";
   my $dfr = App::StrongHash::DigestReader->new($fn => $fh);
   my %hdr = $dfr->header;

@@ -120,7 +120,7 @@ sub fh_on {
   # There may be a better way round all this, but the test should
   # pass anyway.
   my ($fh, $filename) = # unlink here
-    tempfile("07objhasher.$name.XXXXXX", TMPDIR => 1, UNLINK => 1);
+    tempfile("fh_on.$name.XXXXXX", TMPDIR => 1, UNLINK => 1);
   binmode $fh or die $!;
   print {$fh} $blob or die "print{$filename}: $!";
   close $fh or die "close{$filename}: $!";

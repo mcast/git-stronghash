@@ -8,7 +8,7 @@ use File::Temp 'tempdir';
 use YAML qw( Load );
 
 use lib 't/lib';
-use Local::TestUtil qw( testrepo_or_skip test_digestfile_name bin2hex cover_script );
+use Local::TestUtil qw( testrepo_or_skip test_digestfile_name bin2hex cover_script fh_on );
 
 use App::StrongHash::Git; # for the benefit of 00compile.t
 
@@ -24,6 +24,7 @@ sub main {
     or die "Can't make blib/script from $bin";
 
   cover_script();
+  my $header;
 
   subtest git_all => sub {
     # Outputs...  stdout (default)
@@ -81,10 +82,13 @@ sub main {
 
     # --subtract works on the gitsha1s, not presence of desired hash sha512(data(gitsha1))
     $out = qx{ cd $testrepo && $bin/git-stronghash-all -o - -t sha512 --subtract $dir/out.df};
-    is(length($out),
-       46, # header(v2: gitsha1,sha512)
-       "subtracts to header-only")
-      or note bin2hex($out);
+    if (is(length($out),
+	   46, # header(v2: gitsha1,sha512)
+	   "subtracts to header-only")) {
+      $header = $out;
+    } else {
+      note bin2hex($out);
+    }
     is($?, 0, ' exit');
   };
 
@@ -92,6 +96,7 @@ sub main {
     my $df = test_digestfile_name('test-data-no-tags-b105de8d622dab99968653e591d717bc9d753eaf');
     my $cmd = "$bin/git-stronghash-dump $df";
     my $out = qx{$cmd};
+    is($?, 0, 'dump exitcode');
     $out =~ s{^(.*\n)\.\.\.\n}{}s or die "YAML split fail";
     my ($top) = Load($1);
     is($top->{filename}, $df, 'b105de8d: filename');
@@ -120,6 +125,16 @@ sub main {
     like(qx{t/_stdmerge $bin/git-stronghash-dump /does/not/exist},
 	 qr{^Read /does/not/exist: No such file or directory$},
 	 'input not found');
+
+  SKIP: {
+      skip 1, 'no header blob' unless defined $header;
+      # ...would be due to failure in git_all//subtracts to header-only
+      my $hdr_fh = fh_on(df_hdr => $header);
+      open STDIN, '<&', $hdr_fh or die "Can't dup STDIN from tmpfile: $!";
+      my $dumped = qx{ t/_stdmerge $bin/git-stronghash-dump - };
+      is($?, 0, 'stdin dump exitcode');
+      like($dumped, qr{\A---\n.*\n\s+nci: 0\n\s+nobj: 0\n.*\n\.\.\.\ngitsha1\s+sha512\s*\n-+\s+-+\s*\n\Z}s, 'stdin dumped');
+    }
   };
 
   subtest lookup => sub {
