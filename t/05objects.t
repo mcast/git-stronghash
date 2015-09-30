@@ -29,7 +29,7 @@ sub cmpobj {
 sub main {
   my $testrepo = testrepo_or_skip();
   my $testrepo_notags = testrepo_or_skip("-no-tags");
-  plan tests => 8;
+  plan tests => 9;
   unified_diff();
 
   my $repo;
@@ -169,6 +169,31 @@ sub main {
 	   "submodule warn");
     }
   };
+
+  subtest name_from_commits => sub {
+    $RST->();
+    is_deeply([ $repo->sorted_commitid_minmax(8) ],
+	      [qw[ d537baf1 34570e3b ]], 'minmax(8)');
+    $repo->forget([qw[ 34570e3bd4ef302f7eefc5097d4471cdcec108b9 d537baf133bf25d04c0b0711341f59f04119b5e7 ]]);
+    is_deeply([ $repo->sorted_commitid_minmax ],
+	      [qw[ f40b4bd2fd4373df3c7b4455c36786011a717460 9385c9345d9426f1aba91302dc1f34348a4fec96 ]], 'next minmax');
+    $repo->forget([qw[ f40b4bd2fd4373df3c7b4455c36786011a717460
+		       9385c9345d9426f1aba91302dc1f34348a4fec96
+		       5d88f523fa75b55dc9b6c71bf1ee2fba8a32c0a5
+		       4ef2c9401ce4066a75dbe3e83eea2eace5920c37 ]]);
+    is_deeply([ $repo->sorted_commitid_minmax(6) ],
+	      [qw[ f81423 b1ef44 ]], 'next minmax(6)');
+
+  };
+  #  (cd t/testrepo/test-data; git log --format='%ct %H') | sort -rn
+  # 1438290867 34570e3bd4ef302f7eefc5097d4471cdcec108b9
+  # 1437927717 9385c9345d9426f1aba91302dc1f34348a4fec96
+  # 1437925045 f81423b69ec303d11489e1c34a99d58f3c93846a
+  # 1437924805 5d88f523fa75b55dc9b6c71bf1ee2fba8a32c0a5
+  # 1437924684 4ef2c9401ce4066a75dbe3e83eea2eace5920c37
+  # 1437924646 b1ef447c50a6bb259e97b0e8153f1f5b58982531
+  # 1437924594 f40b4bd2fd4373df3c7b4455c36786011a717460
+  # 1437924576 d537baf133bf25d04c0b0711341f59f04119b5e7
 
   return 0;
 }
