@@ -84,10 +84,12 @@ Based on my interpretation of this, informed by many articles (references now lo
 # Local vapourware queue
 
 * [ ] The licence!  Either GPLv3 (my prejudice) or same-terms-as-Git, undecided.
-* [ ] Iterator for digestfile body --> are these commits present? --> if yes, are their trees and blobs?
+* [X] Iterator for digestfile body
+    * [ ] are these commits present?
+    * [ ] if yes, are their trees and blobs?
+* [ ] name output after newest commit inside; or no file when empty body
 * [ ] Iterator for treeful of digestfiles
 * [ ] Support submodule (commit object in tree).  `TODO: Ignoring submodule \'160000 commit 34570e3bd4ef302f7eefc5097d4471cdcec108b9 - test-data\' at ...`
-* [ ] Teach App::StrongHash::Git::Objects to subtract already-hashed objects
 * [ ] Notice when A:G:SH:Objects discovers new objects which relate only to the previous signature, and defer
 * [ ] Stream digestfiles directly into some other ref namespace
 * [ ] Machinery to get these signed by something from time to time
