@@ -12,7 +12,7 @@ use Local::TestUtil qw( cover_script );
 
 sub main {
   run_absolute();
-  plan tests => 6;
+  plan tests => 7;
 
   my @modfn = split /\n/, slurp("$0.txt");
   @modfn = grep { ! /^#/ } @modfn;
@@ -82,6 +82,8 @@ sub main {
 	    'tempfile(...) without explicit UNLINK')
     or note explain { templitter => \@templitter };
 
+  subtest podHEAD1s => sub { t_podHEAD1(%seenmod); };
+
   return 0;
 }
 
@@ -111,5 +113,22 @@ sub nl {
   return @line;
 }
 
+
+sub t_podHEAD1 {
+  my (%mod2fn) = @_;
+  my @essential = qw( NAME DESCRIPTION );
+  print "#\n# Module POD =HEAD1s\n#\n";
+  foreach my $mod (sort keys %mod2fn) {
+    my $fn = $mod2fn{$mod};
+    my @txt = slurp($fn);
+    my @head1 = map { m{^=head1\s+(.*)$} ? ($1) : () } @txt;
+    my %H;
+    @H{@head1} = (1) x @head1;
+    my @missing = grep { !$H{$_} } @essential;
+    is("@missing", "", "missing from $fn");
+    printf("# %-40s: %s\n", $mod, join ' | ', @head1);
+  }
+  return;
+}
 
 exit main();
