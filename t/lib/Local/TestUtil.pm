@@ -98,7 +98,7 @@ sub hex2bin {
 
 sub bin2hex {
   my ($bin) = @_;
-  my ($fh, $fn) = tempfile('bin2hex.XXXXXX', CLEANUP => 1);
+  my ($fh, $fn) = tempfile('bin2hex.XXXXXX', UNLINK => 1);
   binmode $fh or die "$fn binmode: $!";
   local $\ = '';
   print {$fh} $bin;

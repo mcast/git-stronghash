@@ -18,6 +18,12 @@ use App::StrongHash;
 App::StrongHash::ObjHasher - multi-algoritm data hashing
 
 
+=head1 DESCRIPTION
+
+This is the core of the Digestfile format.  It describes the header
+and body, and makes calls to standard hashing functions when fed data.
+
+
 =head1 CLASS METHODS
 
 =head2 new(%info)

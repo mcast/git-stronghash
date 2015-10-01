@@ -13,6 +13,13 @@ use parent 'App::StrongHash::Iterator';
 App::StrongHash::DigestReader - read digestfile
 
 
+=head1 DESCRIPTION
+
+This is a read-back interface for L<App::StrongHash::ObjHasher>.  It
+reads and stores the header of the digestfile, then provides an
+L<App::StrongHash::Iterator> interface to the rows.
+
+
 =head1 CLASS METHODS
 
 =head2 new($name, $fh)

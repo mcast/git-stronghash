@@ -117,7 +117,7 @@ sub nl {
 sub t_podHEAD1 {
   my (%mod2fn) = @_;
   my @essential = qw( NAME DESCRIPTION );
-  print "#\n# Module POD =HEAD1s\n#\n";
+  note "\nModule POD =HEAD1s\n\n";
   foreach my $mod (sort keys %mod2fn) {
     my $fn = $mod2fn{$mod};
     my @txt = slurp($fn);
@@ -126,7 +126,7 @@ sub t_podHEAD1 {
     @H{@head1} = (1) x @head1;
     my @missing = grep { !$H{$_} } @essential;
     is("@missing", "", "missing from $fn");
-    printf("# %-40s: %s\n", $mod, join ' | ', @head1);
+    note sprintf("%-40s: %s\n", $mod, join ' | ', @head1);
   }
   return;
 }
