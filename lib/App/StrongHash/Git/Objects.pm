@@ -515,4 +515,22 @@ sub sorted_commitid_minmax {
 }
 
 
+=head2 commitids_name($nabbrev)
+
+Return a name constructed from L</sorted_commitid_minmax>, or generate
+an error if there are none loaded.
+
+C<$nabbrev> defaults to 8.
+
+=cut
+
+sub commitids_name {
+  my ($self, $nabbrev) = @_;
+  $nabbrev = 8 unless defined $nabbrev;
+  my ($min, $max) = $self->sorted_commitid_minmax($nabbrev)
+    or croak "No commits found, cannot generate name";
+  return "$min~$max";
+}
+
+
 1;

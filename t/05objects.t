@@ -174,6 +174,7 @@ sub main {
   subtest name_from_commits => sub {
     $RST->();
     is_deeply([ $repo->sorted_commitid_minmax ], [], 'empty');
+    like(tryerr { $repo->commitids_name }, qr{No commits found.* at \Q$0 line}, 'name/no commits');
     $repo->add_commits;
     is_deeply([ $repo->sorted_commitid_minmax(8) ],
 	      [qw[ d537baf1 34570e3b ]], 'minmax(8)');
@@ -186,7 +187,8 @@ sub main {
 		       4ef2c9401ce4066a75dbe3e83eea2eace5920c37 ));
     is_deeply([ $repo->sorted_commitid_minmax(6) ],
 	      [qw[ b1ef44 f81423 ]], 'next minmax(6)');
-
+    is($repo->commitids_name(5), "b1ef4~f8142", "name(5)");
+    is($repo->commitids_name, "b1ef447c~f81423b6", "name");
   };
   #  (cd t/testrepo/test-data; git log --format='%ct %H') | sort -rn
   # 1438290867 34570e3bd4ef302f7eefc5097d4471cdcec108b9
