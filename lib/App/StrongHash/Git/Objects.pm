@@ -12,6 +12,7 @@ use App::StrongHash::ObjHasher;
 use App::StrongHash::Git::TreeAdder;
 use App::StrongHash::Regexperator;
 use App::StrongHash::DfLister;
+use App::StrongHash::Git::BlobField;
 
 
 =head1 NAME
@@ -453,6 +454,64 @@ sub subtract_seen {
     delete $tags->{$t} if $dfl->find($id);
   }
   return $self;
+}
+
+
+=head2 forget(@gitsha1)
+
+Remove ids (whether tag, commit, tree or blob) from internal state.
+
+Return $self.
+
+There is currently no inverse operation, it is used for testing.  IDs
+must be given with full length.  IDs listed but not found are ignored.
+
+=cut
+
+sub forget {
+  my ($self, @del) = @_;
+  foreach my $h (@{$self}{qw{ ci_tree tree blob }}) {
+    delete @{$h}{@del};
+  }
+  my %delh;
+  @delh{@del} = ();
+  my $tags = $self->{tag};
+  while (my ($t, $id) = each %$tags) {
+    delete $tags->{$t} if exists $delh{$id};
+  }
+  return $self;
+}
+
+
+=head2 sorted_commitid_minmax($nabbrev)
+
+Return a list of the first and last commitids, sorted by commitdate;
+or the empty list if there are none loaded.
+
+C<$nabbrev> defaults to 40 (full gitsha1).
+
+=cut
+
+sub sorted_commitid_minmax {
+  my ($self, $nabbrev) = @_;
+  $nabbrev = 40 unless defined $nabbrev;
+  my $cii = $self->iter_ci;
+  my $hasher = App::StrongHash::Git::BlobField->new(qr{^committer\s+.*\s+(\d+) [-+]\d{4}$}m);
+  my $cat = App::StrongHash::Git::CatFilerator->new($self, $hasher, $cii, 'match');
+  my ($min, $max);
+  while (my ($i) = $cat->nxt) {
+    if (!defined $min) {
+      $min = $max = $i;
+    } else {
+      $min = $i if $min->[1] > $i->[1];
+      $max = $i if $max->[1] < $i->[1];
+    }
+  }
+  my @out;
+  if (defined $min) {
+    @out = map { substr($_->[0], 0, $nabbrev) } ($min, $max);
+  }
+  return @out;
 }
 
 

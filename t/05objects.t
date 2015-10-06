@@ -9,6 +9,7 @@ use Cwd 'cwd';
 use Test::Differences;
 
 use App::StrongHash::Git::Objects;
+use App::StrongHash::Git::BlobField; # exercised for name_from_commits
 
 use lib 't/lib';
 use Local::TestUtil qw( testrepo_or_skip tryerr );
@@ -172,17 +173,19 @@ sub main {
 
   subtest name_from_commits => sub {
     $RST->();
+    is_deeply([ $repo->sorted_commitid_minmax ], [], 'empty');
+    $repo->add_commits;
     is_deeply([ $repo->sorted_commitid_minmax(8) ],
 	      [qw[ d537baf1 34570e3b ]], 'minmax(8)');
-    $repo->forget([qw[ 34570e3bd4ef302f7eefc5097d4471cdcec108b9 d537baf133bf25d04c0b0711341f59f04119b5e7 ]]);
+    $repo->forget(qw( 34570e3bd4ef302f7eefc5097d4471cdcec108b9 d537baf133bf25d04c0b0711341f59f04119b5e7 ));
     is_deeply([ $repo->sorted_commitid_minmax ],
 	      [qw[ f40b4bd2fd4373df3c7b4455c36786011a717460 9385c9345d9426f1aba91302dc1f34348a4fec96 ]], 'next minmax');
-    $repo->forget([qw[ f40b4bd2fd4373df3c7b4455c36786011a717460
+    $repo->forget(qw( f40b4bd2fd4373df3c7b4455c36786011a717460
 		       9385c9345d9426f1aba91302dc1f34348a4fec96
 		       5d88f523fa75b55dc9b6c71bf1ee2fba8a32c0a5
-		       4ef2c9401ce4066a75dbe3e83eea2eace5920c37 ]]);
+		       4ef2c9401ce4066a75dbe3e83eea2eace5920c37 ));
     is_deeply([ $repo->sorted_commitid_minmax(6) ],
-	      [qw[ f81423 b1ef44 ]], 'next minmax(6)');
+	      [qw[ b1ef44 f81423 ]], 'next minmax(6)');
 
   };
   #  (cd t/testrepo/test-data; git log --format='%ct %H') | sort -rn
