@@ -102,7 +102,7 @@ sub bin2hex {
   binmode $fh or die "$fn binmode: $!";
   local $\ = '';
   print {$fh} $bin;
-  my $hd = `fexdump -C $fn`;
+  my $hd = `hexdump -C $fn`;
   unlink $fn; # or, whatever
   return "(hexdump -C $fn: failed, code $?)" if $?;
   return $hd;
