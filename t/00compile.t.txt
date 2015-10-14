@@ -3,6 +3,7 @@ App/StrongHash.pm
 App/StrongHash/DfIndex.pm
 App/StrongHash/DfLister.pm
 App/StrongHash/DigestReader.pm
+App/StrongHash/FsPOSIX.pm
 App/StrongHash/Git.pm
 App/StrongHash/Git/BlobField.pm
 App/StrongHash/Git/CatFilerator.pm
