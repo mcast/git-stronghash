@@ -2,6 +2,8 @@ package App::StrongHash::FsPOSIX;
 use strict;
 use warnings;
 
+use Carp;
+
 
 =head1 NAME
 
@@ -55,16 +57,35 @@ Error if the path is not a directory which can be scanned.
 
 sub scan {
   my ($self, $path) = @_;
-  $path = '' unless defined $path;
-  my $root = $self->root;
-  my $fullpath = "$root/$path";
-  opendir my $dh, $fullpath or die "scan($root, $path) failed: $!";
+  my $fullpath = $self->_fullpath($path);
+  opendir my $dh, $fullpath or croak "scan($fullpath) failed: $!";
   my @out =
     map { -d $_ ? "$_/" : $_ }
     map {"$fullpath$_"}
     sort(grep { not /^\.\.?$/ }
 	 readdir $dh);
   return @out;
+}
+
+sub _fullpath {
+  my ($self, $path) = @_;
+  $path = '' unless defined $path;
+  my $root = $self->root;
+  return "$root/$path";
+}
+
+
+=head2 getfh($path)
+
+Return a filehandle on the contents of the file object at C<$path>.
+
+=cut
+
+sub getfh {
+  my ($self, $path) = @_;
+  my $fullpath = $self->_fullpath($path);
+  open my $fh, '<', $fullpath or croak "getfh($fullpath) failed: $!";
+  return $fh;
 }
 
 
