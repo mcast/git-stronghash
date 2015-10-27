@@ -119,7 +119,7 @@ sub new {
 
 sub _git {
   my ($self, @arg) = @_;
-  my $dir = $self->{dir};
+  my $dir = $self->dir;
   my @cmd = ("git", "--work-tree", $dir, "--git-dir", "$dir/.git");
   my $nulz = (@arg && $arg[0] eq '-z:') # unused since 6e8083e2 (TreeAdder)
     ? shift @arg : 0;
@@ -146,6 +146,18 @@ sub _git_many {
 
 
 =head1 OBJECT METHODS
+
+=head2 dir()
+
+Return the Git directory.
+
+=cut
+
+sub dir {
+  my ($self) = @_;
+  return $self->{dir};
+}
+
 
 =head2 add_refs()
 

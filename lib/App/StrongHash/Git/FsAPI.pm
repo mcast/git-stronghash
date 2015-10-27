@@ -18,14 +18,16 @@ checked out.
 
 =head1 CLASS METHODS
 
-=head2 new($repodir, $branchname)
+=head2 new($repo, $branchname)
 
 Future operations will be relative to the branch in that repository.
+$repo may be an L<App::StrongHash::Git::Objects> or a directory name.
 
 =cut
 
 sub new {
   my ($class, $repo, $branch) = @_;
+  $repo = App::StrongHash::Git::Objects->new($repo) unless ref($repo);
   my $self = { repo => $repo, branch => $branch };
   bless $self, $class;
   return $self;
@@ -36,7 +38,7 @@ sub new {
 
 =head2 repo
 
-Get the directory containing the repository.
+Get the L<App::StrongHash::Git::Objects> representing the repository.
 
 =head2 branch
 
@@ -62,7 +64,8 @@ sub branch {
 
 sub root {
   my ($self) = @_;
-  my ($r, $b) = @{$self}{qw{ repo branch }};
+  my $r = $self->repo->dir;
+  my $b = $self->branch;
   return ":$b/$r";
 }
 
