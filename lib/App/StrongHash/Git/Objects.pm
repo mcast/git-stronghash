@@ -147,27 +147,28 @@ sub _git_many {
 
 =head1 OBJECT METHODS
 
-=head2 add_tags()
+=head2 add_refs()
 
-List into this object the current tags and their designated commits.
-Return self.
+List into this object the current tags and their designated commits,
+branches and other branch-like refs.  Return self.
 
 =cut
 
-sub add_tags {
+sub add_refs {
   my ($self) = @_;
+  my $br = $self->{branch} ||= {}; # refs/foo => commitid
   my $tags = $self->{tag} ||= {}; # refs/foo => tagid or commitid
   my $showtags = $self->_git(qw( show-ref --tags --heads ))->
     # Sample data - blobids are abbreviated here for legibility
     # 4ef2c940 refs/tags/fif
     # d9101db5 refs/tags/goldfish
     # 9385c934 refs/tags/goldfish^{}   # NOT, unless --dereference
-    iregex(qr{^(\w+)\s+(\S+)$}, "Can't read tagid,tagref");
+    iregex(qr{^(\w+)\s+(\S+)$}, "Can't read refname,refdobj");
   while (my ($nxt) = $showtags->nxt) {
-    my ($tagid, $tagref) = @$nxt;
+    my ($refee, $ref) = @$nxt;
     # If there are no tags, older "git show-ref --tags" returns 1 with no text.  We need some output, just ignore it.
-    next if $tagref =~ m{^HEAD$|^refs/heads/};
-    $tags->{$tagref} = $tagid;
+    my $in = ($ref =~ m{^refs/tags/}) ? $tags : $br;
+    $in->{$ref} = $refee;
   }
   return $self;
 }
@@ -255,14 +256,14 @@ sub add_trees {
 
 =head2 add_all()
 
-Convenience method calls L</add_tags>, L</add_commits> and
+Convenience method calls L</add_refs>, L</add_commits> and
 L</add_trees> in turn.  Returns $self.
 
 =cut
 
 sub add_all {
   my ($self) = @_;
-  return $self->add_tags->add_commits->add_trees;
+  return $self->add_refs->add_commits->add_trees;
 }
 
 

@@ -63,7 +63,7 @@ Valid digest types are: @ok_htype\n\n";
 
   my $cwd = cwd();
   my $repo = App::StrongHash::Git::Objects->new($cwd);
-  $repo->add_tags->add_commits->add_trees;
+  $repo->add_all;
 
   foreach my $df (@digestfile) {
     open my $fh, '<', $df

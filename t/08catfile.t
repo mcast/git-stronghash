@@ -153,7 +153,7 @@ sub tt_missing {
 sub tt_testrepo {
   my ($testrepo) = @_;
   my $repo = App::StrongHash::Git::Objects->new($testrepo);
-  $repo->add_tags->add_commits->add_trees;
+  $repo->add_all;
 
   my $H = $repo->mkhasher(htype => [qw[ gitsha1 sha1 sha256 ]]);
   my $nobj = $H->{nci} + $H->{nblob} + 1 + 10; # + tags(anno) + trees

@@ -42,8 +42,8 @@ sub main {
      "git commandline prefix");
 
   $RST->();
-  $repo->add_tags;
-  cmpobj(add_tags => $repo);
+  $repo->add_refs;
+  cmpobj(add_refs => $repo);
 
   $RST->();
   $repo->add_commits;
@@ -68,7 +68,7 @@ sub main {
     foreach my $f (qw( tag ci_tree tree blob )) {
       $repo->{$f} = $field{$f} ||= {};
     }
-    $repo->add_tags->add_commits->add_trees;
+    $repo->add_all;
     {
       delete local $GURU_CHECKED->{add_trees}{blob}{'96cc558853a03c5d901661af837fceb7a81f58f6'};
       # don't expect to see d1/fifty, because d1/ is not scanned
@@ -78,7 +78,7 @@ sub main {
       cmp_ok(scalar keys %$v, '>', 0, "repo{$k} collection");
     }
     $RST->();
-    $repo->add_tags->add_commits->add_trees;
+    $repo->add_all;
     cmpobj(add_trees => $repo, "unprimed");
 
     is_deeply([ $repo->iter_ci->collect ],
@@ -130,7 +130,7 @@ sub main {
 
   subtest no_tags => sub {
     $repo = App::StrongHash::Git::Objects->new($testrepo_notags);
-    $repo->add_tags;
+    $repo->add_refs;
     is_deeply([ $repo->iter_tag->collect ],
               [], "iter_tag");
     is_deeply([ $repo->iter_ci->collect ],
@@ -156,7 +156,7 @@ sub main {
     my @w;
     local $SIG{__WARN__} = sub { push @w, "@_" };
     $repo = App::StrongHash::Git::Objects->new(cwd()); # code for this project has submods
-    $repo->add_tags->add_commits;
+    $repo->add_refs->add_commits;
     is(scalar @w, 0, "no warn before trees");
     $repo->add_trees;
     is(scalar @w,

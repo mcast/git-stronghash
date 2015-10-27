@@ -44,7 +44,7 @@ sub main {
       sub { die "Timeout (${sec}sec) scanning $repo" };
     alarm($sec);
     $addt->('start');
-    foreach my $mth (qw( add_tags add_commits add_trees )) {
+    foreach my $mth (qw( add_refs add_commits add_trees )) {
       $OL->$mth;
       $addt->($mth);
     }

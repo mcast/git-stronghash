@@ -1,11 +1,13 @@
 ---
-add_tags: !!perl/hash:App::StrongHash::Git::Objects
+add_refs: !!perl/hash:App::StrongHash::Git::Objects
   dir: t/testrepo/test-data
   tag:
     refs/tags/fif: 4ef2c9401ce4066a75dbe3e83eea2eace5920c37
     # fif: ciid
     refs/tags/goldfish: d9101db5d2c6d87f92605709f2e923cd269affec
     # goldfish: tagobj id
+  branch:
+    refs/heads/brA: 34570e3bd4ef302f7eefc5097d4471cdcec108b9
 add_commits: !!perl/hash:App::StrongHash::Git::Objects
   ci_tree:
     34570e3bd4ef302f7eefc5097d4471cdcec108b9: 8f0cc2158b0e9bf5a413c3841b2c7f7705bf2163
@@ -39,6 +41,8 @@ add_trees: !!perl/hash:App::StrongHash::Git::Objects
   tag:
     refs/tags/fif: 4ef2c9401ce4066a75dbe3e83eea2eace5920c37
     refs/tags/goldfish: d9101db5d2c6d87f92605709f2e923cd269affec
+  branch:
+    refs/heads/brA: 34570e3bd4ef302f7eefc5097d4471cdcec108b9
   tree:
     18860e203b47f19b3126c50f6dfb91c2ae97a40d: ~
     25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb: ~
