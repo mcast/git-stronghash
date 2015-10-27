@@ -158,11 +158,12 @@ sub add_refs {
   my ($self) = @_;
   my $br = $self->{branch} ||= {}; # refs/foo => commitid
   my $tags = $self->{tag} ||= {}; # refs/foo => tagid or commitid
-  my $showtags = $self->_git(qw( show-ref --tags --heads ))->
+  my $showtags = $self->_git(qw( show-ref ))->
     # Sample data - blobids are abbreviated here for legibility
     # 4ef2c940 refs/tags/fif
     # d9101db5 refs/tags/goldfish
     # 9385c934 refs/tags/goldfish^{}   # NOT, unless --dereference
+    # TODO: omitted HEAD, and objects from remotes are probably not chased in add_commits
     iregex(qr{^(\w+)\s+(\S+)$}, "Can't read refname,refdobj");
   while (my ($nxt) = $showtags->nxt) {
     my ($refee, $ref) = @$nxt;

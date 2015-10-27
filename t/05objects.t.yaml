@@ -8,6 +8,10 @@ add_refs: !!perl/hash:App::StrongHash::Git::Objects
     # goldfish: tagobj id
   branch:
     refs/heads/brA: 34570e3bd4ef302f7eefc5097d4471cdcec108b9
+    refs/remotes/origin/HEAD: 34570e3bd4ef302f7eefc5097d4471cdcec108b9
+    refs/remotes/origin/brA: 34570e3bd4ef302f7eefc5097d4471cdcec108b9
+    refs/remotes/origin/brB: f81423b69ec303d11489e1c34a99d58f3c93846a
+    refs/remotes/origin/smoosh: 5d88f523fa75b55dc9b6c71bf1ee2fba8a32c0a5
 add_commits: !!perl/hash:App::StrongHash::Git::Objects
   ci_tree:
     34570e3bd4ef302f7eefc5097d4471cdcec108b9: 8f0cc2158b0e9bf5a413c3841b2c7f7705bf2163
@@ -43,6 +47,10 @@ add_trees: !!perl/hash:App::StrongHash::Git::Objects
     refs/tags/goldfish: d9101db5d2c6d87f92605709f2e923cd269affec
   branch:
     refs/heads/brA: 34570e3bd4ef302f7eefc5097d4471cdcec108b9
+    refs/remotes/origin/HEAD: 34570e3bd4ef302f7eefc5097d4471cdcec108b9
+    refs/remotes/origin/brA: 34570e3bd4ef302f7eefc5097d4471cdcec108b9
+    refs/remotes/origin/brB: f81423b69ec303d11489e1c34a99d58f3c93846a
+    refs/remotes/origin/smoosh: 5d88f523fa75b55dc9b6c71bf1ee2fba8a32c0a5
   tree:
     18860e203b47f19b3126c50f6dfb91c2ae97a40d: ~
     25d1bf30ef7d61eef53b5bb4c2d61794316e1aeb: ~
