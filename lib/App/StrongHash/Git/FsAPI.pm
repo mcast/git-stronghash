@@ -76,12 +76,16 @@ Return a list of names relative to root of the L</repo>sitory's tree,
 which are found on the L</branch> at the named path below that root.
 C<$path> defaults to C<>.
 
+The branch is as seen when L<App::StrongHash::Git::Objects/add_refs>
+was called on the L</repo>.  Error if the branch is invalid.
+
 Error if the path is not a directory which can be scanned.
 
 =cut
 
 sub scan {
   my ($self, $path) = @_;
+#  my $ciid = $
   die "unimplemented";
 }
 
